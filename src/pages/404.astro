@@ -1,0 +1,21 @@
+---
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout title="404 - Page Not Found">
+  <div class="max-w-2xl mx-auto px-6 py-24 text-center">
+    <span class="font-mono text-4xl font-bold text-primary block mb-4">404</span>
+    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mb-3">
+      Page Not Found
+    </h1>
+    <p class="text-sm text-muted-foreground max-w-md mx-auto mb-8">
+      The requested route or document could not be located. It may have been moved or does not exist.
+    </p>
+    <a
+      href="/"
+      class="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
+    >
+      Return to Home →
+    </a>
+  </div>
+</Layout>

@@ -1,0 +1,36 @@
+---
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+
+// Only include h2 and h3 in Table of Contents
+const filteredHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+
+{filteredHeadings.length > 0 && (
+  <nav class="space-y-3" aria-label="Table of Contents">
+    <p class="text-xs font-semibold tracking-widest uppercase text-muted-foreground font-mono">
+      On This Page
+    </p>
+    <ul class="space-y-1.5 text-xs">
+      {filteredHeadings.map((h) => (
+        <li class={h.depth === 3 ? "pl-3" : ""}>
+          <a
+            href={`#${h.slug}`}
+            class="text-muted-foreground hover:text-primary transition-colors block py-0.5 line-clamp-1 border-l border-transparent pl-2 -ml-2 hover:border-primary"
+          >
+            {h.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}

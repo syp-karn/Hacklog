@@ -1,0 +1,114 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { SITE } from "@/data/site";
+---
+
+<Layout
+  title="About Me"
+  description={`Detailed biography, background, cybersecurity skills, education, and experience of ${SITE.name}.`}
+>
+  <div class="max-w-3xl mx-auto px-6 py-12 lg:py-16">
+    <!-- Header -->
+    <header class="mb-10 border-b border-border pb-8">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="font-mono text-xs font-bold tracking-wider px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+          BIOGRAPHY
+        </span>
+      </div>
+      <h1 class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+        About Me
+      </h1>
+      <p class="mt-2 text-primary font-mono text-sm">
+        {SITE.tagline}
+      </p>
+    </header>
+
+    <!-- Biography / Summary -->
+    <section class="mb-12 space-y-4 text-muted-foreground leading-relaxed text-sm sm:text-base">
+      <p>{SITE.about.summary}</p>
+    </section>
+
+    <!-- Skills Matrix -->
+    <section class="mb-12">
+      <h2 class="text-xl font-bold text-foreground mb-6">
+        Technical Skills & Domains
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        {Object.entries(SITE.about.skills).map(([category, items]) => (
+          <div class="p-5 rounded-xl border border-border bg-card">
+            <h3 class="font-mono text-xs font-semibold uppercase text-primary tracking-wider mb-3">
+              {category}
+            </h3>
+            <div class="flex flex-wrap gap-1.5">
+              {items.map((skill) => (
+                <span class="font-mono text-xs px-2.5 py-1 bg-muted/60 rounded text-muted-foreground">
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Experience -->
+    <section class="mb-12">
+      <h2 class="text-xl font-bold text-foreground mb-6">
+        Experience
+      </h2>
+      <div class="space-y-6">
+        {SITE.about.experience.map((exp) => (
+          <div class="p-5 rounded-xl border border-border bg-card">
+            <div class="flex flex-wrap items-baseline justify-between gap-2 mb-1">
+              <h3 class="text-base font-semibold text-foreground">
+                {exp.title} <span class="text-muted-foreground font-normal">at {exp.company}</span>
+              </h3>
+              <span class="font-mono text-xs text-muted-foreground">{exp.period}</span>
+            </div>
+            <p class="text-xs sm:text-sm text-muted-foreground mt-2 leading-relaxed">
+              {exp.description}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Education -->
+    <section class="mb-12">
+      <h2 class="text-xl font-bold text-foreground mb-6">
+        Education
+      </h2>
+      <div class="space-y-4">
+        {SITE.about.education.map((edu) => (
+          <div class="p-5 rounded-xl border border-border bg-card">
+            <div class="flex flex-wrap items-baseline justify-between gap-2">
+              <h3 class="text-base font-semibold text-foreground">
+                {edu.degree}
+              </h3>
+              <span class="font-mono text-xs text-muted-foreground">{edu.period}</span>
+            </div>
+            <p class="text-xs sm:text-sm text-primary font-mono mt-1">
+              {edu.school}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Resume link -->
+    <section class="p-6 rounded-xl border border-primary/20 bg-primary/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <h3 class="font-semibold text-foreground">Looking for a full CV / Resume?</h3>
+        <p class="text-xs text-muted-foreground mt-0.5">
+          View or download the complete PDF resume.
+        </p>
+      </div>
+      <a
+        href="/resume"
+        class="inline-flex items-center justify-center px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity shrink-0"
+      >
+        View Resume →
+      </a>
+    </section>
+  </div>
+</Layout>

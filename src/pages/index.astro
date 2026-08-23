@@ -1,0 +1,285 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { SITE } from "@/data/site";
+import { CONFIG } from "@/data/config";
+import { getFeaturedProjects } from "@/data/projects";
+import { getCollection } from "astro:content";
+import { formatDate } from "@/lib/utils";
+
+// Fetch latest content across all collections
+const [writeups, research, notes, projectLogs] = await Promise.all([
+  getCollection("writeups", ({ data }) => !data.draft),
+  getCollection("research", ({ data }) => !data.draft),
+  getCollection("notes", ({ data }) => !data.draft),
+  getCollection("project-logs", ({ data }) => !data.draft),
+]);
+
+// Build unified latest feed
+type FeedItem = {
+  title: string;
+  date: string;
+  href: string;
+  type: "writeup" | "research" | "note" | "project-log";
+  badge: string;
+  summary: string;
+  tags: string[];
+  meta?: string; // e.g. platform, CVE, project name
+};
+
+const feedItems: FeedItem[] = [
+  ...writeups.map((p) => ({
+    title: p.data.title,
+    date: p.data.date,
+    href: `/writeups/${p.id}`,
+    type: "writeup" as const,
+    badge: "WRITEUP",
+    summary: p.data.summary,
+    tags: p.data.tags,
+    meta: p.data.platform?.toUpperCase() + (p.data.difficulty ? ` · ${p.data.difficulty}` : ""),
+  })),
+  ...research.map((p) => ({
+    title: p.data.title,
+    date: p.data.date,
+    href: `/research/${p.id}`,
+    type: "research" as const,
+    badge: "RESEARCH",
+    summary: p.data.summary,
+    tags: p.data.tags,
+    meta: p.data.cve,
+  })),
+  ...notes.map((p) => ({
+    title: p.data.title,
+    date: p.data.date,
+    href: `/notes/${p.id}`,
+    type: "note" as const,
+    badge: "NOTE",
+    summary: p.data.summary,
+    tags: p.data.tags,
+  })),
+  ...projectLogs.map((p) => ({
+    title: p.data.title,
+    date: p.data.date,
+    href: `/project-logs/${p.id}`,
+    type: "project-log" as const,
+    badge: "PROJECT LOG",
+    summary: p.data.summary,
+    tags: p.data.tags,
+    meta: p.data.projectTitle ?? p.data.project,
+  })),
+];
+
+// Sort by date desc and take top N
+const latestItems = feedItems
+  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  .slice(0, CONFIG.content.latestCountOnHomepage);
+
+const featuredProjects = getFeaturedProjects().slice(
+  0,
+  CONFIG.content.featuredProjectsOnHomepage
+);
+
+// Badge colour maps (tailwind classes — must be full strings for purge)
+const badgeClasses: Record<FeedItem["type"], string> = {
+  writeup: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
+  research: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+  note: "bg-sky-500/10 text-sky-400 border border-sky-500/20",
+  "project-log": "bg-violet-500/10 text-violet-400 border border-violet-500/20",
+};
+---
+
+<Layout
+  title={undefined}
+  description={SITE.shortBio}
+>
+  <div class="max-w-3xl mx-auto px-6 py-12 lg:py-16">
+
+    <!-- ────────────────────────────────────────────────────────── -->
+    <!-- HERO SECTION                                               -->
+    <!-- ────────────────────────────────────────────────────────── -->
+    <section id="hero" class="mb-16">
+      <div class="flex flex-col gap-6">
+        <!-- Name + tagline -->
+        <div>
+          <h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+            {SITE.name}
+          </h1>
+          <p class="mt-1 text-primary font-mono text-sm tracking-wide">
+            {SITE.tagline}
+          </p>
+        </div>
+
+        <!-- Short bio -->
+        <p class="text-muted-foreground leading-relaxed max-w-xl">
+          {SITE.shortBio}
+        </p>
+
+        <!-- Social links -->
+        <div class="flex flex-wrap items-center gap-3">
+          <a
+            href={SITE.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            GitHub
+          </a>
+          <a
+            href={SITE.linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/>
+            </svg>
+            LinkedIn
+          </a>
+          <a
+            href={SITE.resumeUrl}
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/>
+            </svg>
+            Resume
+          </a>
+          <a
+            href="/about"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-primary hover:text-primary/80 transition-colors font-medium"
+          >
+            More about me
+            <svg xmlns="http://www.w3.org/2000/svg" class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ────────────────────────────────────────────────────────── -->
+    <!-- CURRENT FOCUS                                             -->
+    <!-- ────────────────────────────────────────────────────────── -->
+    <section id="current-focus" class="mb-16">
+      <h2 class="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-4">
+        Current Focus
+      </h2>
+      <ul class="space-y-1.5">
+        {SITE.currentFocus.map((item) => (
+          <li class="flex items-start gap-2 text-sm text-muted-foreground">
+            <span class="mt-[5px] size-1.5 rounded-full bg-primary shrink-0" aria-hidden="true"></span>
+            {item}
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <!-- ────────────────────────────────────────────────────────── -->
+    <!-- LATEST ACTIVITY                                           -->
+    <!-- ────────────────────────────────────────────────────────── -->
+    <section id="latest" class="mb-16">
+      <div class="flex items-baseline justify-between mb-6">
+        <h2 class="text-xs font-semibold tracking-widest uppercase text-muted-foreground">
+          Latest Activity
+        </h2>
+        <div class="flex items-center gap-3 text-xs text-muted-foreground">
+          <a href="/writeups" class="hover:text-primary transition-colors">Writeups</a>
+          <a href="/research" class="hover:text-primary transition-colors">Research</a>
+          <a href="/notes" class="hover:text-primary transition-colors">Notes</a>
+        </div>
+      </div>
+
+      {latestItems.length === 0 ? (
+        <p class="text-sm text-muted-foreground">No content published yet. Check back soon.</p>
+      ) : (
+        <div class="space-y-px">
+          {latestItems.map((item) => (
+            <a
+              href={item.href}
+              class="group flex items-start gap-3 py-3 px-2 -mx-2 rounded-lg hover:bg-card transition-colors"
+            >
+              <!-- Type badge -->
+              <span
+                class={`shrink-0 mt-0.5 font-mono text-[10px] font-bold tracking-wider px-1.5 py-0.5 rounded ${badgeClasses[item.type]}`}
+              >
+                {item.badge}
+              </span>
+
+              <!-- Content -->
+              <div class="flex-1 min-w-0">
+                <div class="flex items-baseline gap-2 flex-wrap">
+                  <span class="text-sm font-medium text-foreground group-hover:text-primary transition-colors leading-snug">
+                    {item.title}
+                  </span>
+                  {item.meta && (
+                    <span class="text-[11px] text-muted-foreground font-mono shrink-0">{item.meta}</span>
+                  )}
+                </div>
+                <p class="text-xs text-muted-foreground mt-0.5 line-clamp-1">{item.summary}</p>
+              </div>
+
+              <!-- Date -->
+              <time
+                datetime={item.date}
+                class="shrink-0 text-xs text-muted-foreground tabular-nums"
+              >
+                {formatDate(item.date)}
+              </time>
+            </a>
+          ))}
+        </div>
+      )}
+    </section>
+
+    <!-- ────────────────────────────────────────────────────────── -->
+    <!-- SELECTED PROJECTS                                         -->
+    <!-- ────────────────────────────────────────────────────────── -->
+    {featuredProjects.length > 0 && (
+      <section id="projects">
+        <div class="flex items-baseline justify-between mb-6">
+          <h2 class="text-xs font-semibold tracking-widest uppercase text-muted-foreground">
+            Selected Projects
+          </h2>
+          <a href="/projects" class="text-xs text-muted-foreground hover:text-primary transition-colors">
+            All projects →
+          </a>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+          {featuredProjects.map((project) => (
+            <a
+              href={`/projects/${project.slug}`}
+              class="group block p-4 rounded-lg border border-border bg-card hover:border-primary/30 hover:bg-card/80 transition-all"
+            >
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <h3 class="text-sm font-semibold text-foreground group-hover:text-primary transition-colors leading-snug">
+                  {project.title}
+                </h3>
+                <span class={`shrink-0 text-[10px] font-mono px-1.5 py-0.5 rounded border ${
+                  project.status === "active"
+                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                    : project.status === "completed"
+                    ? "bg-sky-500/10 text-sky-400 border-sky-500/20"
+                    : "bg-muted/50 text-muted-foreground border-border"
+                }`}>
+                  {project.status}
+                </span>
+              </div>
+              <p class="text-xs text-muted-foreground leading-relaxed line-clamp-2 mb-3">
+                {project.description}
+              </p>
+              <div class="flex flex-wrap gap-1">
+                {project.technologies.slice(0, 4).map((tech) => (
+                  <span class="text-[10px] font-mono px-1.5 py-0.5 bg-muted/60 rounded text-muted-foreground">
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+  </div>
+</Layout>

@@ -1,0 +1,74 @@
+---
+export const prerender = true;
+
+import ArticleLayout from "@/layouts/ArticleLayout.astro";
+import { getCollection, render } from "astro:content";
+import { mdxComponents } from "@/mdx-components";
+import { PROJECTS } from "@/data/projects";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("project-logs", ({ data }) => !data.draft);
+  const sortedPosts = [...posts].sort(
+    (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+  );
+
+  return sortedPosts.map((post, index) => ({
+    params: { slug: post.id },
+    props: {
+      post,
+      previousPost:
+        index < sortedPosts.length - 1
+          ? { id: sortedPosts[index + 1].id, title: sortedPosts[index + 1].data.title }
+          : null,
+      nextPost:
+        index > 0
+          ? { id: sortedPosts[index - 1].id, title: sortedPosts[index - 1].data.title }
+          : null,
+    },
+  }));
+}
+
+const { post, previousPost, nextPost } = Astro.props;
+const { title, date, summary, project, projectTitle, status, tags } = post.data;
+
+const { Content, headings } = await render(post);
+
+const parentProject = PROJECTS.find((p) => p.slug === project);
+const displayProjectTitle = projectTitle || parentProject?.title || project;
+---
+
+<ArticleLayout
+  title={title}
+  date={date}
+  summary={summary}
+  typeBadge="PROJECT LOG"
+  typeBadgeColor="bg-violet-500/10 text-violet-400 border-violet-500/20"
+  tags={tags}
+  metaInfo={`${displayProjectTitle} · ${status.toUpperCase()}`}
+  headings={headings}
+  previousPost={previousPost}
+  nextPost={nextPost}
+  basePath="/project-logs"
+>
+  {/* Project banner link */}
+  {parentProject && (
+    <div class="my-6 p-4 rounded-xl border border-border bg-card/80 flex items-center justify-between gap-4">
+      <div>
+        <span class="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
+          Belongs to Project
+        </span>
+        <a
+          href={`/projects/${parentProject.slug}`}
+          class="text-sm font-semibold text-primary hover:underline"
+        >
+          {parentProject.title} →
+        </a>
+      </div>
+      <span class="text-xs font-mono px-2 py-0.5 rounded border border-border bg-muted">
+        {parentProject.status}
+      </span>
+    </div>
+  )}
+
+  <Content components={mdxComponents} />
+</ArticleLayout>

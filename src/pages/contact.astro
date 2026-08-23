@@ -1,0 +1,96 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { SITE } from "@/data/site";
+---
+
+<Layout
+  title="Contact"
+  description={`Get in touch with ${SITE.name} for security inquiries, vulnerability reports, or technical discussions.`}
+>
+  <div class="max-w-3xl mx-auto px-6 py-12 lg:py-16">
+    <!-- Header -->
+    <header class="mb-10 border-b border-border pb-8">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="font-mono text-xs font-bold tracking-wider px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+          GET IN TOUCH
+        </span>
+      </div>
+      <h1 class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+        Contact & Channels
+      </h1>
+      <p class="mt-2 text-muted-foreground leading-relaxed">
+        Feel free to reach out regarding security research, penetration testing, open source collaboration, or general inquiries.
+      </p>
+    </header>
+
+    <!-- Channels -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
+      <!-- Email -->
+      <div class="p-6 rounded-xl border border-border bg-card flex flex-col justify-between gap-4">
+        <div>
+          <span class="font-mono text-xs font-semibold text-primary uppercase block mb-1">
+            Email
+          </span>
+          <h2 class="text-base font-bold text-foreground">
+            Direct Email
+          </h2>
+          <p class="text-xs text-muted-foreground mt-1">
+            Best channel for formal inquiries and security disclosures.
+          </p>
+        </div>
+        <a
+          href={`mailto:${SITE.email}`}
+          class="font-mono text-xs text-primary hover:underline font-medium"
+        >
+          {SITE.email} →
+        </a>
+      </div>
+
+      <!-- GitHub -->
+      <div class="p-6 rounded-xl border border-border bg-card flex flex-col justify-between gap-4">
+        <div>
+          <span class="font-mono text-xs font-semibold text-primary uppercase block mb-1">
+            GitHub
+          </span>
+          <h2 class="text-base font-bold text-foreground">
+            Code & Contributions
+          </h2>
+          <p class="text-xs text-muted-foreground mt-1">
+            Inspect source repositories, tools, and project issues.
+          </p>
+        </div>
+        <a
+          href={SITE.github}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="font-mono text-xs text-primary hover:underline font-medium"
+        >
+          {SITE.github.replace("https://", "")} →
+        </a>
+      </div>
+
+      <!-- LinkedIn -->
+      <div class="p-6 rounded-xl border border-border bg-card flex flex-col justify-between gap-4">
+        <div>
+          <span class="font-mono text-xs font-semibold text-primary uppercase block mb-1">
+            LinkedIn
+          </span>
+          <h2 class="text-base font-bold text-foreground">
+            Professional Network
+          </h2>
+          <p class="text-xs text-muted-foreground mt-1">
+            Connect for career discussions and professional background.
+          </p>
+        </div>
+        <a
+          href={SITE.linkedin}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="font-mono text-xs text-primary hover:underline font-medium"
+        >
+          LinkedIn Profile →
+        </a>
+      </div>
+    </div>
+  </div>
+</Layout>

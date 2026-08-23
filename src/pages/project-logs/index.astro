@@ -1,0 +1,101 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { getCollection } from "astro:content";
+import { formatDate } from "@/lib/utils";
+import { PROJECTS } from "@/data/projects";
+
+const logs = await getCollection("project-logs", ({ data }) => !data.draft);
+const sortedLogs = logs.sort(
+  (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+);
+
+const statusBadgeClasses: Record<string, string> = {
+  "in-progress": "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  complete: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  paused: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+};
+---
+
+<Layout
+  title="Project Logs"
+  description="Chronological development logs, implementation experiments, and progress updates for active cybersecurity projects."
+>
+  <div class="max-w-4xl mx-auto px-6 py-12 lg:py-16">
+    <!-- Header -->
+    <header class="mb-10">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="font-mono text-xs font-bold tracking-wider px-2 py-0.5 rounded bg-violet-500/10 text-violet-400 border border-violet-500/20">
+          DEVELOPMENT DIARY
+        </span>
+      </div>
+      <h1 class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+        Project Logs
+      </h1>
+      <p class="mt-2 text-muted-foreground leading-relaxed">
+        Chronological development diaries documenting ongoing tool development, security research experiments, 
+        architectural decisions, and progress updates.
+      </p>
+    </header>
+
+    <!-- List -->
+    {sortedLogs.length === 0 ? (
+      <div class="p-12 text-center border border-dashed border-border rounded-xl">
+        <p class="text-muted-foreground text-sm">No project logs published yet.</p>
+      </div>
+    ) : (
+      <div class="space-y-4">
+        {sortedLogs.map((post) => {
+          const { title, date, summary, project, projectTitle, status, tags } = post.data;
+          const parentProject = PROJECTS.find((p) => p.slug === project);
+          const displayProjectTitle = projectTitle || parentProject?.title || project;
+
+          return (
+            <a
+              href={`/project-logs/${post.id}`}
+              class="group block p-5 rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-card/80 transition-all"
+            >
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-mono text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded bg-violet-500/10 text-violet-400 border border-violet-500/20">
+                    PROJECT LOG
+                  </span>
+                  <span class="font-mono text-xs text-primary font-medium">
+                    · {displayProjectTitle}
+                  </span>
+                  <span
+                    class={`font-mono text-[10px] uppercase px-2 py-0.5 rounded border ${
+                      statusBadgeClasses[status] || "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {status}
+                  </span>
+                </div>
+                <time datetime={date} class="text-xs font-mono text-muted-foreground tabular-nums">
+                  {formatDate(date)}
+                </time>
+              </div>
+
+              <h2 class="text-lg font-semibold text-foreground group-hover:text-primary transition-colors leading-snug">
+                {title}
+              </h2>
+
+              <p class="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                {summary}
+              </p>
+
+              {tags.length > 0 && (
+                <div class="mt-4 flex flex-wrap gap-1.5">
+                  {tags.map((tag) => (
+                    <span class="font-mono text-[10px] px-2 py-0.5 bg-muted/60 rounded text-muted-foreground">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </a>
+          );
+        })}
+      </div>
+    )}
+  </div>
+</Layout>

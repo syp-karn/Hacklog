@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://syp-karn.github.io/sitemap-index.xml

@@ -1,0 +1,56 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { SITE } from "@/data/site";
+---
+
+<Layout
+  title="Resume"
+  description={`Professional resume and curriculum vitae of ${SITE.name}.`}
+>
+  <div class="max-w-3xl mx-auto px-6 py-12 lg:py-16">
+    <!-- Header -->
+    <header class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+      <div>
+        <h1 class="text-3xl font-bold tracking-tight text-foreground">
+          Curriculum Vitae / Resume
+        </h1>
+        <p class="text-sm text-muted-foreground mt-1">
+          {SITE.name} · {SITE.tagline}
+        </p>
+      </div>
+
+      <a
+        href={SITE.resumeUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity shrink-0"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download PDF Resume
+      </a>
+    </header>
+
+    <!-- PDF viewer / fallback message -->
+    <div class="p-8 rounded-xl border border-border bg-card text-center space-y-4">
+      <div class="size-12 rounded-full bg-primary/10 text-primary mx-auto flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+      </div>
+      <h2 class="text-lg font-semibold text-foreground">PDF Resume View</h2>
+      <p class="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">
+        Place your compiled <code class="font-mono text-primary">resume.pdf</code> file into the <code class="font-mono text-primary">public/</code> directory to enable direct PDF downloading and embedding.
+      </p>
+      <div class="pt-2">
+        <a
+          href="/about"
+          class="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-mono"
+        >
+          Read detailed web biography on /about page →
+        </a>
+      </div>
+    </div>
+  </div>
+</Layout>

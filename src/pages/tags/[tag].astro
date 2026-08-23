@@ -1,0 +1,126 @@
+---
+export const prerender = true;
+
+import Layout from "@/layouts/Layout.astro";
+import { getCollection } from "astro:content";
+import { formatDate } from "@/lib/utils";
+
+export async function getStaticPaths() {
+  const [writeups, research, notes, projectLogs] = await Promise.all([
+    getCollection("writeups", ({ data }) => !data.draft),
+    getCollection("research", ({ data }) => !data.draft),
+    getCollection("notes", ({ data }) => !data.draft),
+    getCollection("project-logs", ({ data }) => !data.draft),
+  ]);
+
+  const allTags = new Set([
+    ...writeups.flatMap((w) => w.data.tags),
+    ...research.flatMap((r) => r.data.tags),
+    ...notes.flatMap((n) => n.data.tags),
+    ...projectLogs.flatMap((p) => p.data.tags),
+  ]);
+
+  return Array.from(allTags).map((tag) => ({
+    params: { tag },
+  }));
+}
+
+const { tag } = Astro.params;
+
+const [writeups, research, notes, projectLogs] = await Promise.all([
+  getCollection("writeups", ({ data }) => !data.draft && data.tags.includes(tag!)),
+  getCollection("research", ({ data }) => !data.draft && data.tags.includes(tag!)),
+  getCollection("notes", ({ data }) => !data.draft && data.tags.includes(tag!)),
+  getCollection("project-logs", ({ data }) => !data.draft && data.tags.includes(tag!)),
+]);
+
+type TaggedItem = {
+  title: string;
+  date: string;
+  href: string;
+  type: string;
+  badgeColor: string;
+  summary: string;
+};
+
+const items: TaggedItem[] = [
+  ...writeups.map((w) => ({
+    title: w.data.title,
+    date: w.data.date,
+    href: `/writeups/${w.id}`,
+    type: "WRITEUP",
+    badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    summary: w.data.summary,
+  })),
+  ...research.map((r) => ({
+    title: r.data.title,
+    date: r.data.date,
+    href: `/research/${r.id}`,
+    type: "RESEARCH",
+    badgeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+    summary: r.data.summary,
+  })),
+  ...notes.map((n) => ({
+    title: n.data.title,
+    date: n.data.date,
+    href: `/notes/${n.id}`,
+    type: "NOTE",
+    badgeColor: "bg-sky-500/10 text-sky-400 border-sky-500/20",
+    summary: n.data.summary,
+  })),
+  ...projectLogs.map((p) => ({
+    title: p.data.title,
+    date: p.data.date,
+    href: `/project-logs/${p.id}`,
+    type: "PROJECT LOG",
+    badgeColor: "bg-violet-500/10 text-violet-400 border-violet-500/20",
+    summary: p.data.summary,
+  })),
+].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+---
+
+<Layout title={`Tag: #${tag}`} description={`Articles and publications tagged with #${tag}`}>
+  <div class="max-w-4xl mx-auto px-6 py-12 lg:py-16">
+    <!-- Header -->
+    <header class="mb-10">
+      <div class="flex items-center gap-2 mb-2">
+        <a href="/writeups" class="font-mono text-xs text-muted-foreground hover:text-primary">
+          ← All Publications
+        </a>
+      </div>
+      <h1 class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+        Tagged with <span class="text-primary font-mono">#{tag}</span>
+      </h1>
+      <p class="mt-2 text-sm text-muted-foreground">
+        Found {items.length} publication{items.length === 1 ? "" : "s"} across all content collections.
+      </p>
+    </header>
+
+    <!-- List -->
+    <div class="space-y-4">
+      {items.map((item) => (
+        <a
+          href={item.href}
+          class="group block p-5 rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-card/80 transition-all"
+        >
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <span class={`font-mono text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded border ${item.badgeColor}`}>
+              {item.type}
+            </span>
+            <time datetime={item.date} class="text-xs font-mono text-muted-foreground tabular-nums">
+              {formatDate(item.date)}
+            </time>
+          </div>
+
+          <h2 class="text-lg font-semibold text-foreground group-hover:text-primary transition-colors leading-snug">
+            {item.title}
+          </h2>
+
+          <p class="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2">
+            {item.summary}
+          </p>
+        </a>
+      ))}
+    </div>
+  </div>
+</Layout>

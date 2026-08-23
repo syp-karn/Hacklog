@@ -1,0 +1,56 @@
+---
+export const prerender = true;
+
+import ArticleLayout from "@/layouts/ArticleLayout.astro";
+import { getCollection, render } from "astro:content";
+import { mdxComponents } from "@/mdx-components";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("writeups", ({ data }) => !data.draft);
+  const sortedPosts = [...posts].sort(
+    (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+  );
+
+  return sortedPosts.map((post, index) => ({
+    params: { slug: post.id },
+    props: {
+      post,
+      previousPost:
+        index < sortedPosts.length - 1
+          ? { id: sortedPosts[index + 1].id, title: sortedPosts[index + 1].data.title }
+          : null,
+      nextPost:
+        index > 0
+          ? { id: sortedPosts[index - 1].id, title: sortedPosts[index - 1].data.title }
+          : null,
+    },
+  }));
+}
+
+const { post, previousPost, nextPost } = Astro.props;
+const { title, date, summary, platform, machineName, difficulty, tags } = post.data;
+
+const { Content, headings } = await render(post);
+
+const metaParts = [];
+if (platform) metaParts.push(platform.toUpperCase());
+if (machineName) metaParts.push(machineName);
+if (difficulty) metaParts.push(difficulty.toUpperCase());
+const metaInfo = metaParts.join(" · ");
+---
+
+<ArticleLayout
+  title={title}
+  date={date}
+  summary={summary}
+  typeBadge="WRITEUP"
+  typeBadgeColor="bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+  tags={tags}
+  metaInfo={metaInfo}
+  headings={headings}
+  previousPost={previousPost}
+  nextPost={nextPost}
+  basePath="/writeups"
+>
+  <Content components={mdxComponents} />
+</ArticleLayout>

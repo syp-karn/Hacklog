@@ -1,0 +1,125 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { getCollection } from "astro:content";
+import { formatDate } from "@/lib/utils";
+
+const writeups = await getCollection("writeups", ({ data }) => !data.draft);
+const sortedWriteups = writeups.sort(
+  (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+);
+
+// Collect all unique platforms and tags for filtering
+const platforms = ["all", ...new Set(writeups.map((w) => w.data.platform))];
+const allTags = [...new Set(writeups.flatMap((w) => w.data.tags))];
+
+const difficultyBadgeClasses: Record<string, string> = {
+  easy: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  medium: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  hard: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+  insane: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+};
+---
+
+<Layout
+  title="Writeups"
+  description="Security writeups for Hack The Box, CTF competitions, and vulnerable labs."
+>
+  <div class="max-w-4xl mx-auto px-6 py-12 lg:py-16">
+    <!-- Header -->
+    <header class="mb-10">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="font-mono text-xs font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          PUBLICATION
+        </span>
+      </div>
+      <h1 class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+        Security Writeups
+      </h1>
+      <p class="mt-2 text-muted-foreground leading-relaxed">
+        Detailed technical walkthroughs for Hack The Box machines, CTF challenges, and vulnerable labs. 
+        Focusing on methodology, exploitation paths, privilege escalation, and root cause analysis.
+      </p>
+    </header>
+
+    <!-- Tag Cloud -->
+    {allTags.length > 0 && (
+      <div class="mb-8 p-4 rounded-xl border border-border bg-card/60">
+        <span class="text-xs font-mono font-semibold uppercase text-muted-foreground block mb-2">
+          Filter by Tag
+        </span>
+        <div class="flex flex-wrap gap-1.5">
+          {allTags.map((tag) => (
+            <a
+              href={`/tags/${tag}`}
+              class="font-mono text-xs px-2.5 py-1 bg-muted/60 hover:bg-primary/20 hover:text-primary rounded-md text-muted-foreground transition-colors"
+            >
+              #{tag}
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <!-- Writeups Grid / List -->
+    {sortedWriteups.length === 0 ? (
+      <div class="p-12 text-center border border-dashed border-border rounded-xl">
+        <p class="text-muted-foreground text-sm">No writeups published yet.</p>
+      </div>
+    ) : (
+      <div class="space-y-4">
+        {sortedWriteups.map((post) => {
+          const { title, date, summary, platform, machineName, difficulty, tags } = post.data;
+          return (
+            <a
+              href={`/writeups/${post.id}`}
+              class="group block p-5 rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-card/80 transition-all"
+            >
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-mono text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+                    {platform}
+                  </span>
+                  {machineName && (
+                    <span class="font-mono text-xs text-muted-foreground">
+                      · {machineName}
+                    </span>
+                  )}
+                  {difficulty && (
+                    <span
+                      class={`font-mono text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
+                        difficultyBadgeClasses[difficulty] || "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {difficulty}
+                    </span>
+                  )}
+                </div>
+                <time datetime={date} class="text-xs font-mono text-muted-foreground tabular-nums">
+                  {formatDate(date)}
+                </time>
+              </div>
+
+              <h2 class="text-lg font-semibold text-foreground group-hover:text-primary transition-colors leading-snug">
+                {title}
+              </h2>
+
+              <p class="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                {summary}
+              </p>
+
+              {tags.length > 0 && (
+                <div class="mt-4 flex flex-wrap gap-1.5">
+                  {tags.map((tag) => (
+                    <span class="font-mono text-[10px] px-2 py-0.5 bg-muted/60 rounded text-muted-foreground">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </a>
+          );
+        })}
+      </div>
+    )}
+  </div>
+</Layout>
