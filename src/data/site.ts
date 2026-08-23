@@ -1,19 +1,18 @@
 /**
  * site.ts — Central data file for the Hacklog personal site.
  *
- * Replace all YOUR_* placeholders with your actual information.
- * This file is the single source of truth for personal data used across the site.
+ * This file is the single source of truth for all personal data used across the site.
  */
 
 export const SITE = {
   // ---------------------------------------------------------------------------
   // Identity
   // ---------------------------------------------------------------------------
-  name: "YOUR NAME",
-  handle: "YOUR_HANDLE",           // e.g. "syp-karn" (used in paths, display)
-  initials: "YN",                  // Two-letter initials for avatar fallback
+  name: "B S Poorvaj Pranav",
+  handle: "syp-karn",
+  initials: "BP",
   tagline: "Cybersecurity / Offensive Security",
-  avatarUrl: "/avatar.png",        // Place your photo at public/avatar.png
+  avatarUrl: "/avatar.jpg",
   ogImage: "/og_image.png",
 
   // Short description used in hero and meta tags
@@ -21,100 +20,110 @@ export const SITE = {
 
   // Current focus (shown on homepage)
   currentFocus: [
-    "Offensive security & penetration testing",
-    "Hack The Box machines and CTF competitions",
-    "Vulnerability research and CVE analysis",
-    "Security tooling development",
-    "Network and web application security",
+    "Hunting bugs and vulnerability research",
+    "Familiarizing myself with AD",
+    "Trying automations",
   ],
 
   // ---------------------------------------------------------------------------
   // Contact / Social
   // ---------------------------------------------------------------------------
-  github: "https://github.com/syp-karn",           // YOUR_GITHUB_URL
-  linkedin: "https://linkedin.com/in/YOUR_LINKEDIN",
-  email: "your@email.com",
-  resumeUrl: "/resume.pdf",                         // Place resume at public/resume.pdf
-  twitter: "",                                      // Optional
+  github: "https://github.com/syp-karn",
+  linkedin: "https://linkedin.com/in/poorvajbs",
+  email: "the.poorvaj@gmail.com",
+  resumeUrl: "https://drive.google.com/file/d/1rB1lj_-HyYAOluy7ZeDk5UzxqXbukPqU/view?usp=sharing",
+  twitter: "",
 
   // ---------------------------------------------------------------------------
-  // About page content (full biography)
+  // About page content
   // ---------------------------------------------------------------------------
   about: {
-    summary: `
-YOUR NAME is a cybersecurity practitioner with a focus on offensive security and penetration testing.
-Currently pursuing / recently completed [YOUR EDUCATION / DEGREE].
-Interested in how systems break, how to find vulnerabilities before attackers do, and how to build tools that help.
-
-Active on Hack The Box, participating in CTF competitions, and continuously studying offensive techniques across web, network, and binary exploitation domains.
-    `.trim(),
+    summary: `I am a sophomore at IIIT Sri City with a strong passion for cybersecurity, specializing in Offensive Security. I have hands-on experience in penetration testing, web application security testing, and cloud security research. Currently bug hunting and doing vulnerability research and dabbling other things security-related.`,
 
     experience: [
       {
-        title: "YOUR JOB TITLE",
-        company: "YOUR COMPANY",
-        period: "20XX — Present",
-        description: "YOUR JOB DESCRIPTION",
-        logo: "",
+        title: "Cybersecurity Intern",
+        company: "Sennovate Inc.",
+        logo: "/sennovate.png",
+        period: "Feb 2026 – Present",
+        description: [
+          "Researched and documented MITRE ATT&CK tactics/techniques; produced a tools-to-techniques reference to support red-team knowledge and future assessments.",
+          "Helping with AI automation of cybersecurity workflows.",
+        ],
       },
     ],
 
     education: [
       {
-        degree: "YOUR DEGREE",
-        school: "YOUR SCHOOL / UNIVERSITY",
-        period: "20XX — 20XX",
+        degree: "B.Tech – Computer Science & Engineering (Cybersecurity)",
+        school: "IIIT Sri City",
+        period: "2024 – 2028",
         description: "",
         logo: "",
       },
     ],
 
     skills: {
-      "Offensive Security": [
+      "Skills": [
         "Penetration Testing",
         "Web Application Security",
         "Network Security",
-        "Privilege Escalation",
-        "Active Directory",
+        "Reverse Engineering",
         "OSINT",
       ],
       "Tools & Platforms": [
         "Burp Suite",
-        "Metasploit",
         "Nmap",
         "Wireshark",
+        "SQLMap",
+        "ffuf",
+        "GoBuster",
+        "BloodHound",
         "Ghidra",
-        "Cobalt Strike",
-        "Hack The Box",
       ],
-      "Programming": [
+      "Languages": [
         "Python",
         "Bash",
-        "Go",
         "C",
-        "JavaScript",
-        "PowerShell",
       ],
-      "Infrastructure": [
+      "Others": [
         "Linux",
-        "Docker",
+        "Windows",
         "AWS",
-        "Networking",
-        "Active Directory",
       ],
     },
+
+    // Achievements — e.g. CTF placements, bug bounty, academic honours
+    achievements: [
+      // Add your achievements here. Example:
+      // "Top 10% globally — PlaceholderCTF 2025",
+      // "Bug bounty: XSS in example.com (acknowledged)",
+    ] as string[],
+
+    // Volunteering — clubs, open source contributions, mentorship, etc.
+    volunteering: [
+      // Add volunteering entries here. Example:
+      // { role: "Security Club Lead", org: "IIIT Sri City Cybersec Club", period: "2024 – Present", description: "" },
+    ] as { role: string; org: string; period: string; description: string }[],
   },
 
   // ---------------------------------------------------------------------------
-  // Certifications (shown on /certifications page)
+  // Certifications
   // ---------------------------------------------------------------------------
   certifications: [
     {
-      name: "YOUR CERTIFICATION",
-      issuer: "YOUR ISSUER",
-      date: "20XX",
-      badge: "",        // Path to badge image if available
-      credentialUrl: "",
+      name: "Certified Web Exploitation Specialist (CWES)",
+      issuer: "Hack The Box",
+      date: "Jul 2026",
+      badge: "/cwes.png",
+      credentialUrl: "https://www.credly.com/badges/693dd79f-c309-4d25-99ef-c91da9b27731/public_url",
+    },
+    {
+      name: "eLearnSecurity Junior Penetration Tester (eJPTv2)",
+      issuer: "INE",
+      date: "Dec 2024",
+      badge: "",
+      credentialUrl: "https://certs.ine.com/93df60a7-15d2-4fce-848e-f56c99dda39e",
     },
   ],
 } as const;

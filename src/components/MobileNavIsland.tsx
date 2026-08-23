@@ -1,41 +1,6 @@
 "use client";
 import { useState } from "react";
-
-interface NavItem {
-  href: string;
-  label: string;
-}
-
-const navGroups = [
-  {
-    label: null,
-    items: [
-      { href: "/", label: "Home" },
-      { href: "/about", label: "About" },
-    ],
-  },
-  {
-    label: "Portfolio",
-    items: [
-      { href: "/projects", label: "Projects" },
-      { href: "/certifications", label: "Certifications" },
-      { href: "/resume", label: "Resume" },
-    ],
-  },
-  {
-    label: "Publications",
-    items: [
-      { href: "/writeups", label: "Writeups" },
-      { href: "/research", label: "Research" },
-      { href: "/notes", label: "Notes" },
-      { href: "/project-logs", label: "Project Logs" },
-    ],
-  },
-  {
-    label: null,
-    items: [{ href: "/contact", label: "Contact" }],
-  },
-];
+import SidebarNav from "@/components/SidebarNav";
 
 interface Props {
   currentPath: string;
@@ -43,13 +8,6 @@ interface Props {
 
 export default function MobileNavIsland({ currentPath }: Props) {
   const [open, setOpen] = useState(false);
-
-  const path = currentPath.replace(/\/$/, "") || "/";
-
-  function isActive(href: string): boolean {
-    if (href === "/") return path === "/";
-    return path === href || path.startsWith(href + "/");
-  }
 
   return (
     <>
@@ -85,48 +43,18 @@ export default function MobileNavIsland({ currentPath }: Props) {
       )}
 
       {/* Slide-in drawer */}
-      <nav
+      <div
         id="mobile-nav-drawer"
         className={[
           "fixed top-14 left-0 bottom-0 z-50 w-64 bg-[var(--sidebar-bg)] border-r border-[var(--sidebar-border)] overflow-y-auto transition-transform duration-200 ease-in-out",
           open ? "translate-x-0" : "-translate-x-full",
         ].join(" ")}
-        aria-label="Mobile navigation"
         aria-hidden={!open}
       >
-        <div className="px-4 py-6 flex flex-col gap-4">
-          {navGroups.map((group, groupIdx) => (
-            <div key={groupIdx} className={groupIdx > 0 ? "mt-2" : ""}>
-              {group.label && (
-                <p className="px-2 mb-1 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground/60">
-                  {group.label}
-                </p>
-              )}
-              {group.items.map((item) => {
-                const active = isActive(item.href);
-                return (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setOpen(false)}
-                    aria-current={active ? "page" : undefined}
-                    className={[
-                      "flex items-center px-2 py-2 rounded-md text-sm transition-colors",
-                      "hover:bg-accent hover:text-accent-foreground",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      active
-                        ? "font-medium text-primary bg-primary/10 border-l-2 border-primary -ml-px pl-[calc(0.5rem+1px)]"
-                        : "text-muted-foreground",
-                    ].join(" ")}
-                  >
-                    {item.label}
-                  </a>
-                );
-              })}
-            </div>
-          ))}
+        <div className="px-4 py-4">
+          <SidebarNav currentPath={currentPath} />
         </div>
-      </nav>
+      </div>
     </>
   );
 }

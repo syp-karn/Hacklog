@@ -113,6 +113,23 @@ const badgeClasses: Record<FeedItem["type"], string> = {
           {SITE.shortBio}
         </p>
 
+        <!-- ────────────────────────────────────────────────────────── -->
+    <!-- CURRENT FOCUS                                             -->
+    <!-- ────────────────────────────────────────────────────────── -->
+    <section id="current-focus" class="mb-16">
+      <h2 class="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-4">
+        Current Focus
+      </h2>
+      <ul class="space-y-1.5">
+        {SITE.currentFocus.map((item) => (
+          <li class="flex items-start gap-2 text-sm text-muted-foreground">
+            <span class="mt-[5px] size-1.5 rounded-full bg-primary shrink-0" aria-hidden="true"></span>
+            {item}
+          </li>
+        ))}
+      </ul>
+    </section>
+
         <!-- Social links -->
         <div class="flex flex-wrap items-center gap-3">
           <a
@@ -157,23 +174,6 @@ const badgeClasses: Record<FeedItem["type"], string> = {
           </a>
         </div>
       </div>
-    </section>
-
-    <!-- ────────────────────────────────────────────────────────── -->
-    <!-- CURRENT FOCUS                                             -->
-    <!-- ────────────────────────────────────────────────────────── -->
-    <section id="current-focus" class="mb-16">
-      <h2 class="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-4">
-        Current Focus
-      </h2>
-      <ul class="space-y-1.5">
-        {SITE.currentFocus.map((item) => (
-          <li class="flex items-start gap-2 text-sm text-muted-foreground">
-            <span class="mt-[5px] size-1.5 rounded-full bg-primary shrink-0" aria-hidden="true"></span>
-            {item}
-          </li>
-        ))}
-      </ul>
     </section>
 
     <!-- ────────────────────────────────────────────────────────── -->
