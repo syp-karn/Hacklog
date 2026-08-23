@@ -3,22 +3,21 @@ export const CONFIG = {
   // Site Settings
   // ---------------------------------------------------------------------------
   site: {
-    url: "https://syp-karn.github.io",  // Update when domain is set
-    locale: "en_US",
-    twitterHandle: "@YOUR_TWITTER",
+    url: "https://poorvaj.tech",  // Update when domain is set
+    locale: "en_US"
   },
 
   // ---------------------------------------------------------------------------
   // Author / Identity
   // ---------------------------------------------------------------------------
   author: {
-    name: "YOUR NAME",
+    name: "B S Poorvaj Pranav",
     handle: "hacklog",
     tagline: "Cybersecurity / Offensive Security",
     location: "YOUR LOCATION",
     github: "https://github.com/syp-karn",
-    linkedin: "https://linkedin.com/in/YOUR_LINKEDIN",
-    email: "your@email.com",
+    linkedin: "https://linkedin.com/in/poorvajbs",
+    email: "the.poorvaj@gmail.com",
     resumeUrl: "/resume.pdf",
   },
 

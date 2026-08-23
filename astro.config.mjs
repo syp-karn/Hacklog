@@ -1,5 +1,4 @@
-// @ts-check
-import { defineConfig } from 'astro/config';
+import { defineConfig, passthroughImageService } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
 import mdx from '@astrojs/mdx';
@@ -22,6 +21,9 @@ const prettyCodeOptions = {
 export default defineConfig({
   site: CONFIG.site.url,
   output: 'static',
+  image: {
+    service: passthroughImageService(),
+  },
 
   vite: {
     plugins: [tailwindcss()],

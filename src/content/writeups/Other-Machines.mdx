@@ -1,0 +1,41 @@
+---
+title: "Other Machines"
+date: "2025-01-01"
+summary: "Key security learnings and tips gathered from various Hack The Box machines including Dog, Greenhorn, and Nocturnal."
+platform: "htb"
+machineName: "Other Machines"
+difficulty: "easy"
+tags: ["tips", "recon", "active-directory"]
+draft: false
+featured: false
+---
+
+# Dog
+
+## Learnings
+
+* Always use `-sC` flag of nmap early on; will use scripts that might reveal crucial info
+* For leaked git repos, `git-dumper` and `Git-Hack` are best to analyze
+* Try any passwords you get with any user you can think of, until one of them clicks
+
+---
+
+# Greenhorn
+
+## Learnings
+
+* After enumeration, be sure to check each and every port on a browser (which are not identified by nmap especially )
+* CMS Version of a website can be checked by inspecting the following: `<meta name="generator" content="WordPress 6.3.1" />`
+* Check each and every feature of a website, do not miss a single one, however tedious it may be. Anything can provide an attack surface
+* You can upload and execute zip files too, if php files cannot be uploaded.
+* It is not uncommon for admins to reuse passwords.
+* Keep in mind both `sudo su` and `sudo root` for switching to the root user
+
+---
+
+# Nocturnal
+
+## Learnings
+
+* Go through all publicly visible directories and download the files available. Got a user's creds through this way
+* Check `sbin` for binaries which you can execute as an user, but which run as root

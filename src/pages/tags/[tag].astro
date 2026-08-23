@@ -103,13 +103,10 @@ const items: TaggedItem[] = [
           href={item.href}
           class="group block p-5 rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-card/80 transition-all"
         >
-          <div class="flex items-center justify-between gap-2 mb-2">
+          <div class="flex items-center gap-2 mb-2">
             <span class={`font-mono text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded border ${item.badgeColor}`}>
               {item.type}
             </span>
-            <time datetime={item.date} class="text-xs font-mono text-muted-foreground tabular-nums">
-              {formatDate(item.date)}
-            </time>
           </div>
 
           <h2 class="text-lg font-semibold text-foreground group-hover:text-primary transition-colors leading-snug">

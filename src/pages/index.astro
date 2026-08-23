@@ -220,13 +220,7 @@ const badgeClasses: Record<FeedItem["type"], string> = {
                 <p class="text-xs text-muted-foreground mt-0.5 line-clamp-1">{item.summary}</p>
               </div>
 
-              <!-- Date -->
-              <time
-                datetime={item.date}
-                class="shrink-0 text-xs text-muted-foreground tabular-nums"
-              >
-                {formatDate(item.date)}
-              </time>
+
             </a>
           ))}
         </div>

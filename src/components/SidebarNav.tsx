@@ -41,15 +41,34 @@ const NAV_GROUPS: NavItemConfig[] = [
           {
             label: "Hack The Box",
             children: [
-              { label: "Machines", href: "/writeups/htb/machines" },
-              { label: "Challenges", href: "/writeups/htb/challenges" },
+              {
+                label: "Machines",
+                children: [
+                  { label: "Artificial", href: "/writeups/Artificial" },
+                  { label: "Cap", href: "/writeups/Cap" },
+                  { label: "Editor", href: "/writeups/Editor" },
+                  { label: "EscapeTwo", href: "/writeups/EscapeTwo" },
+                  { label: "Expressway", href: "/writeups/Expressway" },
+                  { label: "Planning", href: "/writeups/Planning" },
+                  { label: "Reactor", href: "/writeups/Reactor" },
+                  { label: "Other Machines", href: "/writeups/Other-Machines" },
+                ],
+              },
             ],
           },
-          { label: "CTF", href: "/writeups/ctf" },
-          { label: "Labs", href: "/writeups/labs" },
         ],
       },
-      { label: "Notes", href: "/notes" },
+      {
+        label: "Notes",
+        children: [
+          {
+            label: "Pentesting",
+            children: [
+              { label: "Kerberos Delegation", href: "/notes/kerberos-delegation" },
+            ],
+          },
+        ],
+      },
     ],
   },
   {
