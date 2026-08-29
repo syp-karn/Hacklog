@@ -41,6 +41,14 @@ const difficultyBadgeClasses: Record<string, string> = {
       </p>
     </header>
 
+    <label for="writeups-search" class="sr-only">Search writeups</label>
+    <input
+      id="writeups-search"
+      type="search"
+      placeholder="Search writeups..."
+      class="w-full mb-4 px-3 py-2 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+    />
+
     <!-- Tag Cloud -->
     {allTags.length > 0 && (
       <div class="mb-8 p-4 rounded-xl border border-border bg-card/60">
@@ -72,6 +80,8 @@ const difficultyBadgeClasses: Record<string, string> = {
           return (
             <a
               href={`/writeups/${post.id}`}
+              data-searchable
+              data-search-text={`${title} ${summary} ${platform} ${machineName ?? ""} ${tags.join(" ")}`.toLowerCase()}
               class="group block p-5 rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-card/80 transition-all"
             >
               <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
@@ -119,5 +129,16 @@ const difficultyBadgeClasses: Record<string, string> = {
         })}
       </div>
     )}
+
+    <script is:inline>
+      const search = document.querySelector("#writeups-search");
+      const entries = document.querySelectorAll("[data-searchable]");
+      search?.addEventListener("input", (event) => {
+        const query = event.target.value.trim().toLowerCase();
+        entries.forEach((entry) => {
+          entry.hidden = query.length > 0 && !entry.dataset.searchText.includes(query);
+        });
+      });
+    </script>
   </div>
 </Layout>

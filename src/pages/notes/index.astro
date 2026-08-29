@@ -32,6 +32,14 @@ const allTags = [...new Set(notes.flatMap((n) => n.data.tags))];
       </p>
     </header>
 
+    <label for="notes-search" class="sr-only">Search notes</label>
+    <input
+      id="notes-search"
+      type="search"
+      placeholder="Search notes..."
+      class="w-full mb-4 px-3 py-2 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+    />
+
     <!-- Tag Cloud -->
     {allTags.length > 0 && (
       <div class="mb-8 p-4 rounded-xl border border-border bg-card/60">
@@ -63,6 +71,8 @@ const allTags = [...new Set(notes.flatMap((n) => n.data.tags))];
           return (
             <a
               href={`/notes/${post.id}`}
+              data-searchable
+              data-search-text={`${title} ${summary} ${tags.join(" ")}`.toLowerCase()}
               class="group block p-5 rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-card/80 transition-all"
             >
               <div class="flex items-center gap-2 mb-2">
@@ -93,5 +103,16 @@ const allTags = [...new Set(notes.flatMap((n) => n.data.tags))];
         })}
       </div>
     )}
+
+    <script is:inline>
+      const search = document.querySelector("#notes-search");
+      const entries = document.querySelectorAll("[data-searchable]");
+      search?.addEventListener("input", (event) => {
+        const query = event.target.value.trim().toLowerCase();
+        entries.forEach((entry) => {
+          entry.hidden = query.length > 0 && !entry.dataset.searchText.includes(query);
+        });
+      });
+    </script>
   </div>
 </Layout>

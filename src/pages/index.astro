@@ -2,7 +2,6 @@
 import Layout from "@/layouts/Layout.astro";
 import { SITE } from "@/data/site";
 import { CONFIG } from "@/data/config";
-import { getFeaturedProjects } from "@/data/projects";
 import { getCollection } from "astro:content";
 import { formatDate } from "@/lib/utils";
 
@@ -72,11 +71,6 @@ const feedItems: FeedItem[] = [
 const latestItems = feedItems
   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   .slice(0, CONFIG.content.latestCountOnHomepage);
-
-const featuredProjects = getFeaturedProjects().slice(
-  0,
-  CONFIG.content.featuredProjectsOnHomepage
-);
 
 // Badge colour maps (tailwind classes — must be full strings for purge)
 const badgeClasses: Record<FeedItem["type"], string> = {
@@ -227,53 +221,5 @@ const badgeClasses: Record<FeedItem["type"], string> = {
       )}
     </section>
 
-    <!-- ────────────────────────────────────────────────────────── -->
-    <!-- SELECTED PROJECTS                                         -->
-    <!-- ────────────────────────────────────────────────────────── -->
-    {featuredProjects.length > 0 && (
-      <section id="projects">
-        <div class="flex items-baseline justify-between mb-6">
-          <h2 class="text-xs font-semibold tracking-widest uppercase text-muted-foreground">
-            Selected Projects
-          </h2>
-          <a href="/projects" class="text-xs text-muted-foreground hover:text-primary transition-colors">
-            All projects →
-          </a>
-        </div>
-        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-          {featuredProjects.map((project) => (
-            <a
-              href={`/projects/${project.slug}`}
-              class="group block p-4 rounded-lg border border-border bg-card hover:border-primary/30 hover:bg-card/80 transition-all"
-            >
-              <div class="flex items-start justify-between gap-2 mb-2">
-                <h3 class="text-sm font-semibold text-foreground group-hover:text-primary transition-colors leading-snug">
-                  {project.title}
-                </h3>
-                <span class={`shrink-0 text-[10px] font-mono px-1.5 py-0.5 rounded border ${
-                  project.status === "active"
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                    : project.status === "completed"
-                    ? "bg-sky-500/10 text-sky-400 border-sky-500/20"
-                    : "bg-muted/50 text-muted-foreground border-border"
-                }`}>
-                  {project.status}
-                </span>
-              </div>
-              <p class="text-xs text-muted-foreground leading-relaxed line-clamp-2 mb-3">
-                {project.description}
-              </p>
-              <div class="flex flex-wrap gap-1">
-                {project.technologies.slice(0, 4).map((tech) => (
-                  <span class="text-[10px] font-mono px-1.5 py-0.5 bg-muted/60 rounded text-muted-foreground">
-                    {tech}
-                  </span>
-                ))}
-              </div>
-            </a>
-          ))}
-        </div>
-      </section>
-    )}
   </div>
 </Layout>

@@ -57,7 +57,7 @@ export const SITE = {
       {
         degree: "B.Tech – Computer Science & Engineering (Cybersecurity)",
         school: "IIIT Sri City",
-        period: "2024 – 2028",
+        period: "2023 – 2027",
         description: "",
         logo: "",
       },
@@ -96,7 +96,6 @@ export const SITE = {
     // Achievements — e.g. CTF placements, bug bounty, academic honours
     achievements: [
       // Add your achievements here. Example:
-      // "Top 10% globally — PlaceholderCTF 2025",
       // "Bug bounty: XSS in example.com (acknowledged)",
     ] as string[],
 
