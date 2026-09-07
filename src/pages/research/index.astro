@@ -1,14 +1,9 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { getCollection } from "astro:content";
 import { formatDate } from "@/lib/utils";
 
-const research = await getCollection("research", ({ data }) => !data.draft);
-const sortedResearch = research.sort(
-  (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
-);
-
-const allTags = [...new Set(research.flatMap((r) => r.data.tags))];
+const sortedResearch = [];
+const allTags: string[] = [];
 
 const typeBadgeClasses: Record<string, string> = {
   cve: "bg-red-500/10 text-red-400 border-red-500/20",

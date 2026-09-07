@@ -6,18 +6,14 @@ import { getCollection } from "astro:content";
 import { formatDate } from "@/lib/utils";
 
 export async function getStaticPaths() {
-  const [writeups, research, notes, projectLogs] = await Promise.all([
+  const [writeups, notes] = await Promise.all([
     getCollection("writeups", ({ data }) => !data.draft),
-    getCollection("research", ({ data }) => !data.draft),
     getCollection("notes", ({ data }) => !data.draft),
-    getCollection("project-logs", ({ data }) => !data.draft),
   ]);
 
   const allTags = new Set([
     ...writeups.flatMap((w) => w.data.tags),
-    ...research.flatMap((r) => r.data.tags),
     ...notes.flatMap((n) => n.data.tags),
-    ...projectLogs.flatMap((p) => p.data.tags),
   ]);
 
   return Array.from(allTags).map((tag) => ({
@@ -27,11 +23,9 @@ export async function getStaticPaths() {
 
 const { tag } = Astro.params;
 
-const [writeups, research, notes, projectLogs] = await Promise.all([
+const [writeups, notes] = await Promise.all([
   getCollection("writeups", ({ data }) => !data.draft && data.tags.includes(tag!)),
-  getCollection("research", ({ data }) => !data.draft && data.tags.includes(tag!)),
   getCollection("notes", ({ data }) => !data.draft && data.tags.includes(tag!)),
-  getCollection("project-logs", ({ data }) => !data.draft && data.tags.includes(tag!)),
 ]);
 
 type TaggedItem = {
@@ -52,14 +46,6 @@ const items: TaggedItem[] = [
     badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
     summary: w.data.summary,
   })),
-  ...research.map((r) => ({
-    title: r.data.title,
-    date: r.data.date,
-    href: `/research/${r.id}`,
-    type: "RESEARCH",
-    badgeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    summary: r.data.summary,
-  })),
   ...notes.map((n) => ({
     title: n.data.title,
     date: n.data.date,
@@ -67,14 +53,6 @@ const items: TaggedItem[] = [
     type: "NOTE",
     badgeColor: "bg-sky-500/10 text-sky-400 border-sky-500/20",
     summary: n.data.summary,
-  })),
-  ...projectLogs.map((p) => ({
-    title: p.data.title,
-    date: p.data.date,
-    href: `/project-logs/${p.id}`,
-    type: "PROJECT LOG",
-    badgeColor: "bg-violet-500/10 text-violet-400 border-violet-500/20",
-    summary: p.data.summary,
   })),
 ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 ---

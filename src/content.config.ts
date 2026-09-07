@@ -22,34 +22,6 @@ const writeups = defineCollection({
 });
 
 // ---------------------------------------------------------------------------
-// Research — CVEs, vulnerability research, analysis, experiments
-// ---------------------------------------------------------------------------
-const research = defineCollection({
-  loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/research" }),
-  schema: z.object({
-    title: z.string(),
-    date: z.string(),
-    summary: z.string(),
-    tags: z.array(z.string()).default([]),
-    type: z.enum(["cve", "analysis", "experiment", "disclosure", "research"]),
-    // CVE-specific fields (optional — only required when type === 'cve')
-    cve: z.string().optional(),            // e.g. "CVE-2024-12345"
-    severity: z
-      .enum(["critical", "high", "medium", "low", "informational"])
-      .optional(),
-    cvssScore: z.number().min(0).max(10).optional(),
-    affectedVersions: z.string().optional(),  // free-form, e.g. "< 2.3.4"
-    status: z
-      .enum(["draft", "researching", "reported", "disclosed", "patched", "wontfix"])
-      .optional(),
-    vendor: z.string().optional(),
-    references: z.array(z.string()).default([]),
-    draft: z.boolean().default(false),
-    featured: z.boolean().default(false),
-  }),
-});
-
-// ---------------------------------------------------------------------------
 // Notes — Learning notes, technique references, concepts
 // ---------------------------------------------------------------------------
 const notes = defineCollection({
@@ -64,27 +36,7 @@ const notes = defineCollection({
   }),
 });
 
-// ---------------------------------------------------------------------------
-// Project Logs — Development diaries / logs tied to a named project
-// ---------------------------------------------------------------------------
-const projectLogs = defineCollection({
-  loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/project-logs" }),
-  schema: z.object({
-    title: z.string(),
-    date: z.string(),
-    summary: z.string(),
-    /** The slug of the parent project in src/data/projects.ts */
-    project: z.string(),
-    projectTitle: z.string().optional(),
-    status: z.enum(["in-progress", "paused", "complete"]).default("in-progress"),
-    tags: z.array(z.string()).default([]),
-    draft: z.boolean().default(false),
-  }),
-});
-
 export const collections = {
   writeups,
-  research,
   notes,
-  "project-logs": projectLogs,
 };

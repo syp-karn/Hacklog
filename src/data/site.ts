@@ -115,7 +115,8 @@ export const SITE = {
       issuer: "Hack The Box",
       date: "Jul 2026",
       badge: "/cwes.png",
-      credentialUrl: "https://www.credly.com/badges/693dd79f-c309-4d25-99ef-c91da9b27731/public_url",
+      credentialUrl: "https://profile.hackthebox.com/profile/019e53b5-f930-7359-bcb8-e302a1e6ae25/certificate/HTBCERT-1706CA5DF1",
+      tipsUrl: "/notes/cwes-tips",
     },
     {
       name: "eLearnSecurity Junior Penetration Tester (eJPTv2)",

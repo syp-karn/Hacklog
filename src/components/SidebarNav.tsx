@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 
 // ────────────────────────────────────────────────────────────────
 // Navigation tree definition
@@ -106,15 +105,12 @@ function NavGroupItem({
   depth?: number;
 }) {
   const ancestorActive = isAncestorActive(node, currentPath);
-  const [open, setOpen] = useState(ancestorActive);
 
   return (
-    <div>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
+    <details open={ancestorActive}>
+      <summary
         className={[
-          "w-full flex items-center justify-between gap-1 px-2 py-1.5 rounded-md text-sm transition-colors",
+          "w-full flex items-center justify-between gap-1 px-2 py-1.5 rounded-md text-sm transition-colors cursor-pointer list-none",
           "hover:bg-accent hover:text-accent-foreground",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           depth === 0 ? "" : "pl-4",
@@ -124,12 +120,11 @@ function NavGroupItem({
         ]
           .filter(Boolean)
           .join(" ")}
-        aria-expanded={open}
       >
         <span>{node.label}</span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className={`size-3.5 shrink-0 transition-transform duration-150 ${open ? "rotate-90" : ""}`}
+          className="size-3.5 shrink-0 transition-transform duration-150"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -139,10 +134,9 @@ function NavGroupItem({
         >
           <path d="m9 18 6-6-6-6" />
         </svg>
-      </button>
+      </summary>
 
-      {open && (
-        <div className={`mt-0.5 ml-3 border-l border-border/60 pl-2 space-y-0.5`}>
+      <div className="mt-0.5 ml-3 border-l border-border/60 pl-2 space-y-0.5">
           {node.children.map((child, i) =>
             isGroup(child) ? (
               <NavGroupItem
@@ -171,9 +165,8 @@ function NavGroupItem({
               </a>
             )
           )}
-        </div>
-      )}
-    </div>
+      </div>
+    </details>
   );
 }
 

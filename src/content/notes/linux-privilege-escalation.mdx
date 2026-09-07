@@ -1,0 +1,113 @@
+---
+title: "Linux Privilege Escalation Cheatsheet"
+date: "2026-09-07"
+summary: "A practical checklist for enumerating Linux hosts and identifying common privilege-escalation paths during authorized assessments."
+tags: ["linux", "privilege-escalation", "enumeration"]
+draft: false
+featured: true
+---
+
+# Linux Privilege Escalation Cheatsheet
+
+Use this checklist only on systems you own or are explicitly authorized to assess.
+
+## 1. Identify the Host
+
+```bash
+id
+whoami
+hostname
+uname -a
+cat /etc/os-release
+ip addr
+ip route
+```
+
+Check the current user, groups, kernel, distribution, interfaces, and routes before looking for an escalation path.
+
+## 2. Inspect Users and Groups
+
+```bash
+cat /etc/passwd
+cat /etc/group
+getent passwd
+id <user>
+last -a
+```
+
+Look for service accounts, writable home directories, reused credentials, and users with interesting group memberships.
+
+## 3. Check Sudo Permissions
+
+```bash
+sudo -l
+sudo -V
+```
+
+Review commands that can run without a password and compare allowed binaries with GTFOBins. Treat `NOPASSWD` entries and commands accepting user-controlled paths as high-priority leads.
+
+## 4. Find SUID and SGID Binaries
+
+```bash
+find / -perm -4000 -type f 2>/dev/null
+find / -perm -2000 -type f 2>/dev/null
+```
+
+Compare unusual binaries against the distribution baseline and verify their versions and file ownership.
+
+## 5. Inspect Capabilities
+
+```bash
+getcap -r / 2>/dev/null
+```
+
+Pay attention to capabilities such as `cap_setuid`, `cap_setgid`, and `cap_dac_read_search` on unexpected executables.
+
+## 6. Review Scheduled Tasks and Services
+
+```bash
+cat /etc/crontab
+ls -la /etc/cron.*
+systemctl list-timers --all
+systemctl list-units --type=service --state=running
+```
+
+For each promising task, check whether the script, its parent directory, or an invoked binary is writable by the current user.
+
+## 7. Search for Credentials and Secrets
+
+```bash
+grep -RniE "password|passwd|secret|token|api[_-]?key" /etc /opt /var/www /home 2>/dev/null
+find /home /opt /var/www -type f \( -name "*.conf" -o -name "*.config" -o -name "*.env" -o -name "*.bak" \) 2>/dev/null
+```
+
+Validate discovered credentials against their intended service and avoid exposing secrets in reports or screenshots.
+
+## 8. Inspect Writable Paths
+
+```bash
+find / -writable -type d 2>/dev/null
+find / -writable -type f 2>/dev/null
+```
+
+Prioritize writable files executed by privileged processes, service configuration files, and scripts referenced by scheduled jobs.
+
+## 9. Check Processes and Network Services
+
+```bash
+ps auxww
+ss -lntup
+find /proc -maxdepth 2 -name environ -readable -exec cat {} \; 2>/dev/null
+```
+
+Look for privileged processes, local-only services, exposed debug interfaces, and environment variables containing credentials.
+
+## 10. Validate the Path
+
+Before documenting an escalation path:
+
+- Reproduce it with the minimum required permissions.
+- Confirm the affected binary, script, or configuration is the root cause.
+- Record the exact commands and relevant file permissions.
+- Clean up test artifacts.
+- Report the issue with a clear remediation and evidence boundary.

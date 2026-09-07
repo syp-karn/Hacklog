@@ -1,13 +1,9 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { getCollection } from "astro:content";
 import { formatDate } from "@/lib/utils";
 import { PROJECTS } from "@/data/projects";
 
-const logs = await getCollection("project-logs", ({ data }) => !data.draft);
-const sortedLogs = logs.sort(
-  (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
-);
+const sortedLogs = [];
 
 const statusBadgeClasses: Record<string, string> = {
   "in-progress": "bg-amber-500/10 text-amber-400 border-amber-500/20",

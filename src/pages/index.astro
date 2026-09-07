@@ -6,11 +6,9 @@ import { getCollection } from "astro:content";
 import { formatDate } from "@/lib/utils";
 
 // Fetch latest content across all collections
-const [writeups, research, notes, projectLogs] = await Promise.all([
+const [writeups, notes] = await Promise.all([
   getCollection("writeups", ({ data }) => !data.draft),
-  getCollection("research", ({ data }) => !data.draft),
   getCollection("notes", ({ data }) => !data.draft),
-  getCollection("project-logs", ({ data }) => !data.draft),
 ]);
 
 // Build unified latest feed
@@ -36,16 +34,6 @@ const feedItems: FeedItem[] = [
     tags: p.data.tags,
     meta: p.data.platform?.toUpperCase() + (p.data.difficulty ? ` · ${p.data.difficulty}` : ""),
   })),
-  ...research.map((p) => ({
-    title: p.data.title,
-    date: p.data.date,
-    href: `/research/${p.id}`,
-    type: "research" as const,
-    badge: "RESEARCH",
-    summary: p.data.summary,
-    tags: p.data.tags,
-    meta: p.data.cve,
-  })),
   ...notes.map((p) => ({
     title: p.data.title,
     date: p.data.date,
@@ -54,16 +42,6 @@ const feedItems: FeedItem[] = [
     badge: "NOTE",
     summary: p.data.summary,
     tags: p.data.tags,
-  })),
-  ...projectLogs.map((p) => ({
-    title: p.data.title,
-    date: p.data.date,
-    href: `/project-logs/${p.id}`,
-    type: "project-log" as const,
-    badge: "PROJECT LOG",
-    summary: p.data.summary,
-    tags: p.data.tags,
-    meta: p.data.projectTitle ?? p.data.project,
   })),
 ];
 

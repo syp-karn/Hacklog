@@ -1,0 +1,61 @@
+---
+title: "CWES Preparation Tips"
+date: "2026-09-07"
+summary: "Study and assessment habits for preparing for the Certified Web Exploitation Specialist exam."
+tags: ["certifications", "cwes", "web-security", "methodology"]
+draft: false
+featured: true
+---
+
+# CWES Preparation Tips
+
+The strongest preparation is repeated hands-on practice under realistic time constraints. Keep a short, reproducible record of what you tested, what changed, and why the result matters.
+
+## Build a Repeatable Workflow
+
+1. Start with scope, assumptions, and a quick attack-surface map.
+2. Enumerate systematically before committing to an exploit path.
+3. Keep requests, payloads, and observations organized.
+4. Re-test important findings from a clean state.
+5. Write the remediation while the technical details are still fresh.
+
+## Prioritize Web Fundamentals
+
+Review the behavior and failure modes of:
+
+- Authentication and session management
+- Access control and IDOR
+- SQL injection and NoSQL injection
+- Cross-site scripting
+- Server-side request forgery
+- File upload and path traversal
+- Command injection and template injection
+- Deserialization and prototype pollution
+- API security and business-logic flaws
+
+## Practice the Full Assessment Loop
+
+Do not stop at identifying a payload. Practice moving from discovery to impact:
+
+- Explain the trust boundary being crossed.
+- Show the smallest reliable proof of concept.
+- Identify the affected role, object, or service.
+- Describe realistic impact without overstating it.
+- Suggest a fix that addresses the root cause.
+
+## Improve Under Time Pressure
+
+Use timed practice sessions and leave room for validation and documentation. When stuck, return to the request flow, compare authorized and unauthorized states, and reduce the problem to one variable at a time.
+
+## Keep an Evidence Log
+
+Record:
+
+- Target and endpoint
+- Request and response changes
+- Authentication context
+- Payload and prerequisites
+- Impact and affected scope
+- Remediation
+
+Avoid copying sensitive secrets into notes. Redact tokens, credentials, and personal data before storing or sharing evidence.
