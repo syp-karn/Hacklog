@@ -32,10 +32,11 @@ const NAV_GROUPS: NavItemConfig[] = [
     ],
   },
   {
-    label: "Publications",
+    label: "My Work",
     items: [
       {
         label: "Writeups",
+        href: "/writeups",
         children: [
           {
             label: "Hack The Box",
@@ -43,13 +44,12 @@ const NAV_GROUPS: NavItemConfig[] = [
               {
                 label: "Machines",
                 children: [
-                  { label: "Artificial", href: "/writeups/artificial" },
-                  { label: "Cap", href: "/writeups/cap" },
-                  { label: "Editor", href: "/writeups/editor" },
-                  { label: "EscapeTwo", href: "/writeups/escapetwo" },
-                  { label: "Expressway", href: "/writeups/expressway" },
-                  { label: "Planning", href: "/writeups/planning" },
                   { label: "Reactor", href: "/writeups/reactor" },
+                  { label: "Expressway", href: "/writeups/expressway" },
+                  { label: "Editor", href: "/writeups/editor" },
+                  { label: "Artificial", href: "/writeups/artificial" },
+                  { label: "Planning", href: "/writeups/planning" },
+                  { label: "EscapeTwo", href: "/writeups/escapetwo" },
                   { label: "Other Machines", href: "/writeups/other-machines" },
                 ],
               },
@@ -59,11 +59,18 @@ const NAV_GROUPS: NavItemConfig[] = [
       },
       {
         label: "Notes",
+        href: "/notes",
         children: [
           {
             label: "Pentesting",
             children: [
-              { label: "Kerberos Delegation", href: "/notes/kerberos-delegation" },
+              { label: "Linux Privilege Escalation", href: "/notes/linux-privilege-escalation" },
+            ],
+          },
+          {
+            label: "Certifications",
+            children: [
+              { label: "CWES Tips", href: "/notes/cwes-tips" },
             ],
           },
         ],
@@ -108,23 +115,41 @@ function NavGroupItem({
 
   return (
     <details open={ancestorActive}>
-      <summary
-        className={[
-          "w-full flex items-center justify-between gap-1 px-2 py-1.5 rounded-md text-sm transition-colors cursor-pointer list-none",
-          "hover:bg-accent hover:text-accent-foreground",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          depth === 0 ? "" : "pl-4",
-          ancestorActive
-            ? "text-primary font-medium"
-            : "text-muted-foreground",
-        ]
-          .filter(Boolean)
-          .join(" ")}
-      >
-        <span>{node.label}</span>
+      <summary className="list-none">
+        <div
+          className={[
+            "w-full flex items-center justify-between gap-1 rounded-md text-sm transition-colors",
+            "hover:bg-accent hover:text-accent-foreground",
+            "focus-within:outline-none focus-within:ring-2 focus-within:ring-ring",
+            depth === 0 ? "" : "pl-4",
+            ancestorActive ? "text-primary font-medium" : "text-muted-foreground",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          {node.href ? (
+            <a
+              href={node.href}
+              aria-current={isActive(node.href, currentPath) ? "page" : undefined}
+              className="flex-1 px-2 py-1.5 rounded-md focus-visible:outline-none"
+            >
+              {node.label}
+            </a>
+          ) : (
+            <span className="flex-1 px-2 py-1.5">{node.label}</span>
+          )}
+          <button
+            type="button"
+            className="p-1.5 mr-1 rounded-md hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label={`Toggle ${node.label}`}
+            onClick={(event) => {
+              event.preventDefault();
+              event.currentTarget.closest("details")?.toggleAttribute("open");
+            }}
+          >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="size-3.5 shrink-0 transition-transform duration-150"
+          className="size-3.5 shrink-0 transition-transform duration-150 details-arrow"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -134,6 +159,8 @@ function NavGroupItem({
         >
           <path d="m9 18 6-6-6-6" />
         </svg>
+          </button>
+        </div>
       </summary>
 
       <div className="mt-0.5 ml-3 border-l border-border/60 pl-2 space-y-0.5">

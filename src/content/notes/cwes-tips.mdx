@@ -7,55 +7,20 @@ draft: false
 featured: true
 ---
 
-# CWES Preparation Tips
+All the resources and information you need to complete the exam are in the modules of the CWES path itself. The tricky part in the exam comes when you have to chain multiple vulnerabilities together.
 
-The strongest preparation is repeated hands-on practice under realistic time constraints. Keep a short, reproducible record of what you tested, what changed, and why the result matters.
+Do all the skills assessments at the end of the modules, together at once, after completing the path.
 
-## Build a Repeatable Workflow
+One preparation method I discovered was to get the user flag on HTB machines, because many of them have web apps with varied vulnerabilities for initial access. That'll help you identify and enumerate an unknown vuln without the handheld guidance of the module labs, where you know what the vulnerability is. There is even a CWES track on HTB dedicated to this: [CWES HTB track](https://app.hackthebox.com/tracks/87)
 
-1. Start with scope, assumptions, and a quick attack-surface map.
-2. Enumerate systematically before committing to an exploit path.
-3. Keep requests, payloads, and observations organized.
-4. Re-test important findings from a clean state.
-5. Write the remediation while the technical details are still fresh.
+During the exam, make sure to keep a notes section (I used Obsidian), separate from your report section, to record which methods you have already tried and what their results were. This will save you from wasting time on exhausted attack vectors, and might also help during report writing.
 
-## Prioritize Web Fundamentals
+If you found an exploitable path or vulnerability, be sure to take note of the payloads used and concerned endpoints.
 
-Review the behavior and failure modes of:
+Screenshots are a must during the exam itself; don't leave them for the last. Most importantly, label each of them properly. This will help you greatly during report writing.
 
-- Authentication and session management
-- Access control and IDOR
-- SQL injection and NoSQL injection
-- Cross-site scripting
-- Server-side request forgery
-- File upload and path traversal
-- Command injection and template injection
-- Deserialization and prototype pollution
-- API security and business-logic flaws
+For report writing, I used Sysreptor with the available CWES template. It is very easy to fill in once you have the hang of it.
 
-## Practice the Full Assessment Loop
+And don't forget to take breaks during the exam, especially when you're stuck somewhere. Most of the time you'll come back with a clear head and cross that blockade.
 
-Do not stop at identifying a payload. Practice moving from discovery to impact:
-
-- Explain the trust boundary being crossed.
-- Show the smallest reliable proof of concept.
-- Identify the affected role, object, or service.
-- Describe realistic impact without overstating it.
-- Suggest a fix that addresses the root cause.
-
-## Improve Under Time Pressure
-
-Use timed practice sessions and leave room for validation and documentation. When stuck, return to the request flow, compare authorized and unauthorized states, and reduce the problem to one variable at a time.
-
-## Keep an Evidence Log
-
-Record:
-
-- Target and endpoint
-- Request and response changes
-- Authentication context
-- Payload and prerequisites
-- Impact and affected scope
-- Remediation
-
-Avoid copying sensitive secrets into notes. Redact tokens, credentials, and personal data before storing or sharing evidence.
+All the best to anyone taking the exam in the future!

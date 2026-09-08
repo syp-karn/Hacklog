@@ -22,9 +22,7 @@ const {
   hasToc = false,
 } = Astro.props;
 
-const pageTitle = title
-  ? `${title} | ${SITE.name}`
-  : `${SITE.name} — ${SITE.tagline}`;
+const pageTitle = title ?? "Poorvaj's Hacklog";
 
 const ogImage = image
   ? image.startsWith("http")

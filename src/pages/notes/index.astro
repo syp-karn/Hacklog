@@ -46,7 +46,7 @@ const allTags = [...new Set(notes.flatMap((n) => n.data.tags))];
         <span class="text-xs font-mono font-semibold uppercase text-muted-foreground block mb-2">
           Filter by Tag
         </span>
-        <div class="flex flex-wrap gap-1.5">
+        <div class="flex flex-wrap gap-1.5 max-h-[4.5rem] overflow-y-auto pr-1">
           {allTags.map((tag) => (
             <a
               href={`/tags/${tag}`}

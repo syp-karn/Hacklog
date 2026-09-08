@@ -28,8 +28,8 @@ export const SITE = {
   // ---------------------------------------------------------------------------
   // Contact / Social
   // ---------------------------------------------------------------------------
-  github: "https://github.com/syp-karn",
   linkedin: "https://linkedin.com/in/poorvajbs",
+  github: "https://github.com/syp-karn",
   email: "the.poorvaj@gmail.com",
   resumeUrl: "https://drive.google.com/file/d/1rB1lj_-HyYAOluy7ZeDk5UzxqXbukPqU/view?usp=sharing",
   twitter: "",
