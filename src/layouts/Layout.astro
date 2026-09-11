@@ -159,14 +159,18 @@ const currentPath = Astro.url.pathname;
     </a>
 
     <!-- Mobile nav bar (visible only on mobile) -->
-    <div class="lg:hidden fixed top-0 left-0 right-0 z-40 border-b border-border bg-[var(--sidebar-bg)] backdrop-blur-sm">
+    <div class="lg:hidden fixed top-0 left-0 right-0 z-50 border-b border-border bg-[var(--sidebar-bg)] backdrop-blur-sm">
       <div class="flex items-center justify-between px-4 h-14">
         <a href="/" class="font-mono font-bold text-lg tracking-tight text-primary">
           HACKLOG
         </a>
-        <MobileNavIsland currentPath={currentPath} client:load />
+        <!-- Hamburger button rendered by island; drawer/overlay are body-level siblings below -->
+        <div id="mobile-nav-trigger"></div>
       </div>
     </div>
+
+    <!-- MobileNavIsland as a direct body child so its fixed drawer escapes the header's stacking context -->
+    <MobileNavIsland currentPath={currentPath} client:load />
 
     <!-- Page layout: sidebar + main content -->
     <div class="flex min-h-screen">

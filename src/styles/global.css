@@ -207,10 +207,17 @@ details[open] > summary .details-arrow {
     @apply mr-2 align-middle!;
   }
 
+  /* Wrap tables in a scroll container on mobile so they don't break the viewport */
   .prose :where(table):not(:where([class~="not-prose"]) *) {
     @apply w-full min-w-full;
     border-collapse: separate;
     border-spacing: 0;
+  }
+
+  .prose :where(table):not(:where([class~="not-prose"]) *) {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .prose :where(th):not(:where([class~="not-prose"] *)),
