@@ -1,39 +1,25 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import { SITE } from "@/data/site";
+
+const sectionOrder = SITE.about.sectionOrder;
+const sectionStyle = (section: (typeof sectionOrder)[number]) =>
+  `order: ${sectionOrder.indexOf(section)}`;
 ---
 
 <Layout
   title="Poorvaj's Hacklog"
   description={`Biography, experience, certifications, and skills of ${SITE.name}.`}
 >
-  <div class="max-w-3xl mx-auto px-6 py-12 lg:py-16">
+  <div class="max-w-3xl mx-auto px-6 py-12 lg:py-16 flex flex-col">
+
+    <!-- Change the About page order by moving these section blocks below. -->
 
     <!-- ──────────────────────────────────────────────────────────────── -->
-    <!-- HEADER with avatar                                              -->
+    <!-- 1. HEADER                                                        -->
     <!-- ──────────────────────────────────────────────────────────────── -->
-    <header class="mb-10 pb-8 border-b border-border">
-      <div class="flex flex-col sm:flex-row sm:items-center gap-6">
-        <!-- Avatar -->
-        <div class="shrink-0">
-          <img
-            src={SITE.avatarUrl}
-            alt={`${SITE.name} profile photo`}
-            width="96"
-            height="96"
-            class="size-24 rounded-full object-cover border-2 border-primary/30 ring-4 ring-primary/10"
-            onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
-          />
-          <!-- Fallback initials avatar -->
-          <div
-            class="size-24 rounded-full bg-primary/20 text-primary font-bold text-2xl items-center justify-center hidden"
-            aria-hidden="true"
-          >
-            {SITE.initials}
-          </div>
-        </div>
-
-        <div>
+    <header class="mb-10 pb-8 border-b border-border" style={sectionStyle("bio")}>
+      <div>
           <div class="flex items-center gap-2 mb-1">
             <span class="font-mono text-xs font-bold tracking-wider px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
               ABOUT
@@ -42,21 +28,20 @@ import { SITE } from "@/data/site";
           <h1 class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {SITE.name}
           </h1>
-        </div>
       </div>
     </header>
 
     <!-- ──────────────────────────────────────────────────────────────── -->
-    <!-- 1. BIOGRAPHY / SUMMARY                                          -->
+    <!-- 2. BIOGRAPHY / SUMMARY                                           -->
     <!-- ──────────────────────────────────────────────────────────────── -->
-    <section class="mb-12 space-y-4 text-muted-foreground leading-relaxed text-sm sm:text-base">
+    <section class="mb-12 space-y-4 text-muted-foreground leading-relaxed text-sm sm:text-base" style={sectionStyle("bio")}>
       <p>{SITE.about.summary}</p>
     </section>
 
     <!-- ──────────────────────────────────────────────────────────────── -->
-    <!-- 2. EXPERIENCE                                                    -->
+    <!-- 3. EXPERIENCE                                                    -->
     <!-- ──────────────────────────────────────────────────────────────── -->
-    <section class="mb-12">
+    <section class="mb-12" style={sectionStyle("experience")}>
       <h2 class="text-xl font-bold text-foreground mb-6">Experience</h2>
       <div class="space-y-4">
         {SITE.about.experience.map((exp) => (
@@ -94,9 +79,27 @@ import { SITE } from "@/data/site";
     </section>
 
     <!-- ──────────────────────────────────────────────────────────────── -->
-    <!-- 3. CERTIFICATIONS                                               -->
+    <!-- 4. EDUCATION                                                     -->
     <!-- ──────────────────────────────────────────────────────────────── -->
-    <section class="mb-12">
+    <section class="mb-12" style={sectionStyle("education")}>
+      <h2 class="text-xl font-bold text-foreground mb-6">Education</h2>
+      <div class="space-y-4">
+        {SITE.about.education.map((education) => (
+          <div class="p-5 rounded-xl border border-border bg-card">
+            <div class="flex flex-wrap items-baseline justify-between gap-2">
+              <h3 class="text-base font-semibold text-foreground">{education.degree}</h3>
+              <span class="font-mono text-xs text-muted-foreground">{education.period}</span>
+            </div>
+            <p class="text-sm text-muted-foreground mt-1">{education.school}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────────────────────────────────────── -->
+    <!-- 5. CERTIFICATIONS                                                -->
+    <!-- ──────────────────────────────────────────────────────────────── -->
+    <section class="mb-12" style={sectionStyle("certifications")}>
       <h2 class="text-xl font-bold text-foreground mb-6">Certifications</h2>
       <div class="space-y-4">
         {SITE.certifications.map((cert) => (
@@ -129,9 +132,9 @@ import { SITE } from "@/data/site";
     </section>
 
     <!-- ──────────────────────────────────────────────────────────────── -->
-    <!-- 4. SKILLS                                                       -->
+    <!-- 6. SKILLS                                                        -->
     <!-- ──────────────────────────────────────────────────────────────── -->
-    <section class="mb-12">
+    <section class="mb-12" style={sectionStyle("skills")}>
       <h2 class="text-xl font-bold text-foreground mb-6">Skills</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {Object.entries(SITE.about.skills).map(([category, items]) => (
@@ -152,10 +155,10 @@ import { SITE } from "@/data/site";
     </section>
 
     <!-- ──────────────────────────────────────────────────────────────── -->
-    <!-- 5. ACHIEVEMENTS                                                 -->
+    <!-- 7. ACHIEVEMENTS                                                  -->
     <!-- ──────────────────────────────────────────────────────────────── -->
     {SITE.about.achievements.length > 0 && (
-      <section class="mb-12">
+      <section class="mb-12" style={sectionStyle("achievements")}>
         <h2 class="text-xl font-bold text-foreground mb-6">Achievements</h2>
         <div class="p-5 rounded-xl border border-border bg-card">
           <ul class="space-y-2">
@@ -171,10 +174,10 @@ import { SITE } from "@/data/site";
     )}
 
     <!-- ──────────────────────────────────────────────────────────────── -->
-    <!-- 6. VOLUNTEERING                                                 -->
+    <!-- 8. VOLUNTEERING                                                  -->
     <!-- ──────────────────────────────────────────────────────────────── -->
     {SITE.about.volunteering.length > 0 && (
-      <section class="mb-12">
+      <section class="mb-12" style={sectionStyle("volunteering")}>
         <h2 class="text-xl font-bold text-foreground mb-6">Volunteering</h2>
         <div class="space-y-4">
           {SITE.about.volunteering.map((v) => (
@@ -198,9 +201,9 @@ import { SITE } from "@/data/site";
     )}
 
     <!-- ──────────────────────────────────────────────────────────────── -->
-    <!-- 7. RESUME BUTTON                                                -->
+    <!-- 9. RESUME BUTTON                                                 -->
     <!-- ──────────────────────────────────────────────────────────────── -->
-    <section class="mt-12 p-6 rounded-xl border border-primary/20 bg-primary/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <section class="mt-12 p-6 rounded-xl border border-primary/20 bg-primary/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4" style={sectionStyle("resume")}>
       <div>
         <h3 class="font-semibold text-foreground">Full Resume / CV</h3>
         <p class="text-xs text-muted-foreground mt-0.5">

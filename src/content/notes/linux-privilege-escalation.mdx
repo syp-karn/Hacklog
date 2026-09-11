@@ -1,113 +1,67 @@
 ---
 title: "Linux Privilege Escalation Cheatsheet"
 date: "2026-09-07"
-summary: "A practical checklist for enumerating Linux hosts and identifying common privilege-escalation paths during authorized assessments."
+summary: "A practical checklist for enumerating Linux hosts and identifying common privilege-escalation paths."
 tags: ["linux", "privilege-escalation", "enumeration"]
 draft: false
 featured: true
 ---
 
-# Linux Privilege Escalation Cheatsheet
+Things to do during the privilege escalation phase of a Linux machine pentest
 
-Use this checklist only on systems you own or are explicitly authorized to assess.
+## Stabilize your shell
 
-## 1. Identify the Host
-
-```bash
-id
-whoami
-hostname
-uname -a
-cat /etc/os-release
-ip addr
-ip route
-```
-
-Check the current user, groups, kernel, distribution, interfaces, and routes before looking for an escalation path.
-
-## 2. Inspect Users and Groups
+- [ ] `python3 -c "import pty; pty.spawn('/bin/bash')"` -> spawn a bash session
+- [ ] `export TERM=xterm` -> set shell to standard TERM value
+- [ ] Fully stabilize into bash shell:
 
 ```bash
-cat /etc/passwd
-cat /etc/group
-getent passwd
-id <user>
-last -a
+Remote:  python3 -c 'import pty; pty.spawn("/bin/bash")'
+Remote:  export TERM=xterm
+          Ctrl+Z
+Local:   stty raw -echo; fg
+          Enter
+Remote:  reset
 ```
 
-Look for service accounts, writable home directories, reused credentials, and users with interesting group memberships.
+## Automated Enum & PrivEsc Sweep
 
-## 3. Check Sudo Permissions
+- [ ] Run [LinEnum](https://github.com/rebootuser/LinEnum) -> automates common local enumeration checks 
+- [ ] Run [LinPeas](https://github.com/peass-ng/PEASS-ng/tree/master/linPEAS) -> automates local privesc checks.
 
-```bash
-sudo -l
-sudo -V
-```
+While waiting for these to finish running, you can manually check for privilege escalation vectors in the following order:-
 
-Review commands that can run without a password and compare allowed binaries with GTFOBins. Treat `NOPASSWD` entries and commands accepting user-controlled paths as high-priority leads.
+## Manual Checks
 
-## 4. Find SUID and SGID Binaries
+- [ ] `sudo -l` -> lists utilities with root privileges that the current user can run
 
-```bash
-find / -perm -4000 -type f 2>/dev/null
-find / -perm -2000 -type f 2>/dev/null
-```
+- [ ] `find / -not -type l -perm -o+w` -> lists all files editable by any user regardless of permissions
 
-Compare unusual binaries against the distribution baseline and verify their versions and file ownership.
+### Enumerating system information (finding vulnerable versions):-
+	- [ ] `hostname`
+	- [ ] `cat /etc/issue` & `cat /etc/*issue` -> OS distribution info
+	- [ ] `uname -a` -> kernel distribution
+	- [ ] `lscpu` -> CPU information
+	- [ ] `df -h` -> file systems
+	- [ ] `cat /etc/shells` -> list of installed shells
 
-## 5. Inspect Capabilities
+### Users and groups enumeration:-
+	- [ ] `cat /etc/passwd` -> all user and service accounts
+	- [ ] `cat /etc/passwd | grep -v /nologin` -> user accounts only
+	- [ ] `w` and `who` -> check who is currently logged on
+	- [ ] `lastlog`
 
-```bash
-getcap -r / 2>/dev/null
-```
 
-Pay attention to capabilities such as `cap_setuid`, `cap_setgid`, and `cap_dac_read_search` on unexpected executables.
 
-## 6. Review Scheduled Tasks and Services
+### Check for processes and cron jobs:-
+	- [ ] `ps aux`
+	- [ ] `top` -> lists all running processes
+	- [ ] `crontab -l` -> cron jobs for the current user
+	- [ ] `cat /etc/crontab` -> all cron jobs on the system
+	- [ ] Check `/etc/cron.d` directory
 
-```bash
-cat /etc/crontab
-ls -la /etc/cron.*
-systemctl list-timers --all
-systemctl list-units --type=service --state=running
-```
-
-For each promising task, check whether the script, its parent directory, or an invoked binary is writable by the current user.
-
-## 7. Search for Credentials and Secrets
-
-```bash
-grep -RniE "password|passwd|secret|token|api[_-]?key" /etc /opt /var/www /home 2>/dev/null
-find /home /opt /var/www -type f \( -name "*.conf" -o -name "*.config" -o -name "*.env" -o -name "*.bak" \) 2>/dev/null
-```
-
-Validate discovered credentials against their intended service and avoid exposing secrets in reports or screenshots.
-
-## 8. Inspect Writable Paths
-
-```bash
-find / -writable -type d 2>/dev/null
-find / -writable -type f 2>/dev/null
-```
-
-Prioritize writable files executed by privileged processes, service configuration files, and scripts referenced by scheduled jobs.
-
-## 9. Check Processes and Network Services
-
-```bash
-ps auxww
-ss -lntup
-find /proc -maxdepth 2 -name environ -readable -exec cat {} \; 2>/dev/null
-```
-
-Look for privileged processes, local-only services, exposed debug interfaces, and environment variables containing credentials.
-
-## 10. Validate the Path
-
-Before documenting an escalation path:
-
-- Reproduce it with the minimum required permissions.
-- Confirm the affected binary, script, or configuration is the root cause.
-- Record the exact commands and relevant file permissions.
-- Clean up test artifacts.
-- Report the issue with a clear remediation and evidence boundary.
+### Examine network configuration of the machine (for pivoting etc.)
+	- [ ] `ip a s` -> all internet interfaces
+	- [ ] `arp -a` -> lists other devices on the network
+	- [ ] `cat /etc/resolve.conf` -> DNS information (e.g. primary nameserver)
+	- [ ] `netstat -ano` -> All Listening TCP and UDP connections

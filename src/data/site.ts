@@ -11,12 +11,17 @@ export const SITE = {
   name: "B S Poorvaj Pranav",
   handle: "syp-karn",
   initials: "BP",
-  tagline: "Cybersecurity / Offensive Security",
+  url: "https://poorvaj.tech",
+  location: "",
+  locationLink: "",
+  tagline: "Offensive Security",
   avatarUrl: "/avatar.jpg",
   ogImage: "/og_image.png",
 
   // Short description used in hero and meta tags
-  shortBio: "Cybersecurity practitioner focused on offensive security, penetration testing, and vulnerability research. I document what I learn, share what I build, and publish writeups of machines I pwn.",
+  shortBio: "Cybersecurity practitioner focused on offensive security, penetration testing, web application security, and vulnerability research. \n A personal blog where I share writeups, notes, findings, research, and everything else I uncover in the world of security.",
+  description: "Cybersecurity practitioner focused on offensive security, penetration testing, and vulnerability research.",
+  summary: "I am a sophomore at IIIT Sri City specializing in cybersecurity and offensive security.",
 
   // Current focus (shown on homepage)
   currentFocus: [
@@ -38,40 +43,52 @@ export const SITE = {
   // About page content
   // ---------------------------------------------------------------------------
   about: {
-    summary: `I am a sophomore at IIIT Sri City with a strong passion for cybersecurity, specializing in Offensive Security. I have hands-on experience in penetration testing, web application security testing, and cloud security research. Currently bug hunting and doing vulnerability research and dabbling other things security-related.`,
+    summary: `I am a sophomore at IIIT Sri City with a strong passion for cybersecurity, specializing in Offensive Security. I enjoy identifying and exploiting vulnerabilities, testing systems to uncover security flaws, and enhancing overall resilience. Currently I am trying out bug hunting, vulnerability research and a few other things.`,
+
+    // Change this array to reorder the sections on the About page.
+    sectionOrder: [
+      "bio",
+      "experience",
+      "certifications",
+      "skills",
+      "education",
+      "achievements",
+      "volunteering",
+      "resume",
+    ] as const,
 
     experience: [
       {
-        title: "Cybersecurity Intern",
+        title: "Security Engineer Intern",
         company: "Sennovate Inc.",
         logo: "/sennovate.png",
-        period: "Feb 2026 – Present",
+        period: "February 2026 – Present",
         description: [
           "Researched and documented MITRE ATT&CK tactics/techniques; produced a tools-to-techniques reference to support red-team knowledge and future assessments.",
           "Helping with AI automation of cybersecurity workflows.",
         ],
-      },
-    ],
-
-    education: [
-      {
-        degree: "B.Tech – Computer Science & Engineering (Cybersecurity)",
-        school: "IIIT Sri City",
-        period: "2023 – 2027",
-        description: "",
-        logo: "",
-      },
+      }
     ],
 
     skills: {
-      "Skills": [
-        "Penetration Testing",
-        "Web Application Security",
-        "Network Security",
-        "Reverse Engineering",
+      "Penetration Testing": [
+        "Reconnaissance",
         "OSINT",
+        "Enumeration",
+        "Exploitation",
+        "Privilege Escalation",
+        "Reporting",
       ],
-      "Tools & Platforms": [
+      "Web Application Pentesting": [
+        "Source Code Review",
+        "Broken Authentication",
+        "Command Injection",
+        "File Upload Attacks",
+        "Session Security",
+        "API Security",
+        "Server-Side Attacks"
+      ],
+      "Tools": [
         "Burp Suite",
         "Nmap",
         "Wireshark",
@@ -80,6 +97,8 @@ export const SITE = {
         "GoBuster",
         "BloodHound",
         "Ghidra",
+        "Metasploit",
+        "Mimikatz"
       ],
       "Languages": [
         "Python",
@@ -90,19 +109,31 @@ export const SITE = {
         "Linux",
         "Windows",
         "AWS",
-      ],
+        "Git"
+      ]
     },
+
+    education: [
+      {
+        degree: "B.Tech(Hons.) – Computer Science & Engineering",
+        school: "IIIT Sri City",
+        period: "2023 – 2027",
+        description: "",
+        logo: "",
+      },
+    ],
 
     // Achievements — e.g. CTF placements, bug bounty, academic honours
     achievements: [
-      // Add your achievements here. Example:
-      // "Bug bounty: XSS in example.com (acknowledged)",
+      "Shortlisted for the NCIIPC scheme for a Controlled Penetration Testing Exercise of Critical Information Infrastructure (CII).",
+      "AIR 27 - NCIIPC-AICTE Pentathon '25; ranked 27th in the final round from a pool of 20,000 participants."
     ] as string[],
 
     // Volunteering — clubs, open source contributions, mentorship, etc.
     volunteering: [
-      // Add volunteering entries here. Example:
-      // { role: "Security Club Lead", org: "IIIT Sri City Cybersec Club", period: "2024 – Present", description: "" },
+      { role: "Cybersecurity Domain Lead", org: "Google Developer Groups IIITS", period: "August 2025 – April 2026", description: "Mentored students in cybersecurity through sessions and workshops, and developed CTF challenges." },
+      { role: "Director of Operations", org: "E-Cell IIITS", period: "January 2025 – August 2025", description: "Planned event logistics, coordinated resources, and led operations for event execution." },
+      { role: "Outreach Team", org: "Web3ssh", period: "July 2024 – August 2024", description: "Promoted the Web3ssh Summer School and Hackathon 2024 through institutional outreach." },
     ] as { role: string; org: string; period: string; description: string }[],
   },
 
@@ -122,7 +153,7 @@ export const SITE = {
       name: "eLearnSecurity Junior Penetration Tester (eJPTv2)",
       issuer: "INE",
       date: "Dec 2024",
-      badge: "",
+      badge: "/ejpt.png",
       credentialUrl: "https://certs.ine.com/93df60a7-15d2-4fce-848e-f56c99dda39e",
     },
   ],

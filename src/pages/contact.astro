@@ -9,7 +9,7 @@ import { SITE } from "@/data/site";
 >
   <div class="max-w-3xl mx-auto px-6 py-12 lg:py-16">
     <!-- Header -->
-    <header class="mb-10 border-b border-border pb-8">
+    <header class="mb-8 border-b border-border pb-6">
       <div class="flex items-center gap-2 mb-2">
         <span class="font-mono text-xs font-bold tracking-wider px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
           GET IN TOUCH
@@ -18,16 +18,13 @@ import { SITE } from "@/data/site";
       <h1 class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
         Contact
       </h1>
-      <p class="mt-2 text-muted-foreground leading-relaxed">
-        Feel free to reach out to talk anything security!
-      </p>
     </header>
 
     <!-- Channels -->
     <div class="flex flex-col border-y border-border">
       <a
         href={`mailto:${SITE.email}`}
-        class="flex items-center justify-between py-4 text-sm text-foreground hover:text-primary transition-colors"
+        class="flex items-center justify-between py-3 text-sm text-foreground hover:text-primary transition-colors"
       >
         <span>Email</span>
         <span class="font-mono text-xs text-muted-foreground">{SITE.email}</span>
@@ -36,19 +33,10 @@ import { SITE } from "@/data/site";
         href={SITE.linkedin}
         target="_blank"
         rel="noopener noreferrer"
-        class="flex items-center justify-between py-4 border-t border-border text-sm text-foreground hover:text-primary transition-colors"
+        class="flex items-center justify-between py-3 border-t border-border text-sm text-foreground hover:text-primary transition-colors"
       >
         <span>LinkedIn</span>
-        <span class="font-mono text-xs text-muted-foreground">Open profile</span>
-      </a>
-      <a
-        href={SITE.github}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="flex items-center justify-between py-4 border-t border-border text-sm text-foreground hover:text-primary transition-colors"
-      >
-        <span>GitHub</span>
-        <span class="font-mono text-xs text-muted-foreground">Open profile</span>
+        <span class="font-mono text-xs text-muted-foreground">poorvajbs</span>
       </a>
     </div>
   </div>

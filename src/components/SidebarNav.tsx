@@ -44,6 +44,8 @@ const NAV_GROUPS: NavItemConfig[] = [
               {
                 label: "Machines",
                 children: [
+                  { label: "Enigma", href: "/writeups/enigma" },
+                  { label: "Cohort", href: "/writeups/cohort" },
                   { label: "Reactor", href: "/writeups/reactor" },
                   { label: "Expressway", href: "/writeups/expressway" },
                   { label: "Editor", href: "/writeups/editor" },
