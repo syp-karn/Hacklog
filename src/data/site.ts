@@ -19,7 +19,7 @@ export const SITE = {
   ogImage: "/og_image.png",
 
   // Short description used in hero and meta tags
-  shortBio: "Cybersecurity practitioner focused on offensive security, penetration testing, web application security, and vulnerability research. \n A personal blog where I share writeups, notes, findings, research, and everything else I uncover in the world of security.",
+  shortBio: "I am a cybersecurity practitioner focused on offensive security, penetration testing, web application security, and vulnerability research. \n This is a personal blog where I share writeups, notes, findings, research, and everything else I uncover in the world of security.",
   description: "Cybersecurity practitioner focused on offensive security, penetration testing, and vulnerability research.",
   summary: "I am a sophomore at IIIT Sri City specializing in cybersecurity and offensive security.",
 
