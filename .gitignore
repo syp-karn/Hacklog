@@ -29,3 +29,8 @@ _reference/
 
 # Pagefind
 pagefind/
+
+# Analytics worker
+analytics-worker/.wrangler/
+analytics-worker/.dev.vars
+analytics-worker/node_modules/

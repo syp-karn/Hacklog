@@ -1,0 +1,23 @@
+name = "hacklog-analytics"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+# D1 binding — create the DB first, then paste its id here:
+#   npx wrangler d1 create hacklog-analytics
+[[d1_databases]]
+binding = "DB"
+database_name = "hacklog-analytics"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# Secrets (set via `npx wrangler secret put`):
+#   STATS_TOKEN   — token required by GET /api/stats
+#   COLLECT_SALT  — random string used to salt visitor IP hashes
+#   COLLECT_PATH  — optional override for the unguessable collect path
+#                   (default /a62534db8dff824a71f1190a7be06663; must match
+#                   COLLECT_ENDPOINT in src/lib/tracker/main.ts)
+#
+# Route: attach to a subdomain of poorvaj.tech (the zone must be on this
+# Cloudflare account), e.g.
+# routes = [
+#   { pattern = "analytics.poorvaj.tech/api/*", zone_name = "poorvaj.tech" }
+# ]

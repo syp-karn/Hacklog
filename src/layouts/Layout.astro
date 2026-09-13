@@ -150,6 +150,14 @@ const currentPath = Astro.url.pathname;
   </head>
 
   <body class="min-h-screen bg-background text-foreground font-sans antialiased">
+    <!--
+      Self-hosted, cookieless analytics (see src/lib/tracker + analytics-worker/).
+      Passive device signals + behavior; IP is salt-hashed server-side, never stored raw.
+    -->
+    <script>
+      import "@/lib/tracker/main";
+    </script>
+
     <!-- Skip to content for accessibility -->
     <a
       href="#main-content"
