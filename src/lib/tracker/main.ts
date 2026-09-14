@@ -5,9 +5,9 @@
  * builds a cookieless visitor id, and beacons everything to the collector
  * Worker on the analytics subdomain. No cookies, no prompts.
  *
- * Transport: two beacons per pageview —
- *   1. 'pageview'   on load, carries the device/env snapshot
- *   2. 'engagement' on pagehide, carries accumulated behaviour
+ * Transport: ONE 'pageview' beacon per pageview, on load, carrying the
+ * device/env snapshot. Behaviour capture still runs client-side but is not
+ * shipped to the collector — one row per page keeps the D1 table clean.
  *
  * Geo/ASN/TLS never come from the client — the Worker stamps those from the
  * request itself (cf object) at write time.
@@ -22,7 +22,6 @@ import {
 } from './probes';
 import { webrtcProbe } from './webrtc';
 import { recall, sessionId, browserHint } from './persist';
-import { behaviorCapture } from './behavior';
 
 /**
  * Where beacons go. Both halves are injected at BUILD time from the
@@ -144,9 +143,6 @@ function deviceSnapshot(s: SignalMap): Partial<BeaconPayload> {
 }
 
 async function main(): Promise<void> {
-  // Behaviour watching starts immediately so it accumulates during probe time.
-  behaviorCapture.attach();
-
   const signals = await runProbes(PASSIVE_PROBES);
 
   // Resolve visitor identity (reads + re-seeds the multi-backend tag).
@@ -154,22 +150,8 @@ async function main(): Promise<void> {
   window.__hlVid = visit.vid;
   window.__hlSid = sessionId();
 
-  // Beacon 1: pageview + device snapshot.
+  // One beacon per pageview: pageview + device snapshot.
   send({ ...basePayload('pageview'), ...deviceSnapshot(signals) });
-
-  // Beacon 2: engagement, flushed when the page is hidden for the last time.
-  const flush = () => {
-    if (document.visibilityState !== 'hidden') return;
-    // Only ever flushed once per load — remove after firing.
-    document.removeEventListener('visibilitychange', onVis);
-    send({ ...basePayload('engagement'), final: true, ...behaviorCapture.engagement() });
-  };
-  const onVis = () => flush();
-  document.addEventListener('visibilitychange', onVis);
-  // Belt and braces: mobile Safari sometimes skips visibilitychange on close.
-  addEventListener('pagehide', () => {
-    send({ ...basePayload('engagement'), final: true, ...behaviorCapture.engagement() });
-  }, { once: true });
 }
 
 main().catch(() => { /* analytics must never break the page */ });

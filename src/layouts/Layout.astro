@@ -31,7 +31,6 @@ const ogImage = image
   : `${CONFIG.site.url}${CONFIG.seo.ogImage}`;
 
 const { light, dark, radius } = CONFIG.theme;
-const { baseFontSize } = CONFIG.typography;
 
 // A preview/staging build must never be indexed: duplicate content competes
 // with the real site, and being crawled is the easiest way for a stranger to
@@ -48,7 +47,6 @@ const currentPath = Astro.url.pathname;
 
 <html
   lang={CONFIG.site.locale.split("_")[0]}
-  style={`font-size: ${baseFontSize}%;`}
 >
   <head>
     <meta charset="UTF-8" />

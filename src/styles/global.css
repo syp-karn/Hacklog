@@ -3,6 +3,7 @@
 @plugin "@tailwindcss/typography";
 @import "@fontsource-variable/outfit";
 @import "@fontsource-variable/geist-mono";
+@import "./responsive.css"; /* fluid root type scale + gutters — owns <html> font-size */
 
 @custom-variant dark (&:is(.dark *));
 

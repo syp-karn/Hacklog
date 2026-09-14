@@ -240,6 +240,10 @@ async function handleCollect(request, env, origin) {
   const ev = parseEvent(raw);
   if (!ev) return reject(env, 400, origin);
 
+  // One row per pageview: engagement beacons (the pagehide flush) are acked
+  // but not stored. The pageview row already carries the device snapshot.
+  if (ev.type === 'engagement') return new Response(null, { status: 204, headers: corsHeaders(env, origin) });
+
   const cf = request.cf ?? {};
   const now = Date.now();
 
@@ -262,19 +266,28 @@ async function handleCollect(request, env, origin) {
   // Derive pointer type from client signals when present.
   const pointer = typeof ev.pointer === 'string' ? ev.pointer : null;
 
+  // Readable IST twin of `now` ('YYYY-MM-DD HH:MM:SS', UTC+05:30) for the D1 console.
+  const nowAt = new Date(now + 5.5 * 3600_000).toISOString().replace('T', ' ').slice(0, 19);
+
   // ---- upsert the visitor row ----
   await env.DB.prepare(
-    `INSERT INTO visitors (vid, first_seen, last_seen, visits, ua, browser_hint, os_hint, os_version_hint)
-     VALUES (?, ?, ?, 1, ?, ?, ?, ?)
+    `INSERT INTO visitors (vid, first_seen, last_seen, first_seen_at, last_seen_at, visits,
+                           ua, browser_hint, os_hint, os_version_hint, country, region, city)
+     VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(vid) DO UPDATE SET
        last_seen = excluded.last_seen,
+       last_seen_at = excluded.last_seen_at,
        visits = visitors.visits + 1`,
-  ).bind(ev.vid, now, now, ev.ua, ev.browser_hint, ev.os_hint, ev.os_version_hint).run();
+  ).bind(
+    ev.vid, now, now, nowAt, nowAt,
+    ev.ua, ev.browser_hint, ev.os_hint, ev.os_version_hint,
+    country, region, city,
+  ).run();
 
   // ---- pageview row ----
   await env.DB.prepare(
     `INSERT INTO pageviews
-      (vid, sid, path, ref_host, ts, country, city, region, asn, as_org, colo,
+      (time, vid, sid, path, ref_host, ts, country, city, region, asn, as_org, colo,
        tls_version, http_protocol, ip_hash, ua,
        lang, languages, tz, local_hour, screen, pixel_ratio, refresh_hz,
        cores, mem_gb, net_type, downlink_mbps, gpu,
@@ -282,15 +295,13 @@ async function handleCollect(request, env, origin) {
        os_hint, os_version_hint, browser_hint, engine_hint,
        bot_score, color_scheme, reduced_motion, touch_points, pointer,
        codec_hash, voices_hash, domrect_hash, webgl_params_hash,
-       rtc_local_ips, rtc_public_ip, rtc_mdns_protected,
-       dwell_ms, scroll_depth, read_wpm, tab_aways, clicks, final)
+       rtc_local_ips, rtc_public_ip, rtc_mdns_protected)
      VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,
              ?16,?17,?18,?19,?20,?21,?22,?23,?24,?25,?26,?27,
              ?28,?29,?30,?31,?32,?33,?34,?35,?36,?37,?38,?39,?40,
-             ?41,?42,?43,?44,?45,?46,?47,
-             ?48,?49,?50,?51,?52,?53)`,
+             ?41,?42,?43,?44,?45,?46,?47,?48)`,
   ).bind(
-    ev.vid, ev.sid, ev.path, ev.ref_host, now, country, city, region, asn, asOrg, colo,
+    nowAt, ev.vid, ev.sid, ev.path, ev.ref_host, now, country, city, region, asn, asOrg, colo,
     tlsVersion, httpProtocol, ipHashValue, ev.ua,
     ev.lang, ev.languages, ev.tz, ev.local_hour, ev.screen, ev.pixel_ratio, ev.refresh_hz,
     ev.cores, ev.mem_gb, ev.net_type, ev.downlink_mbps, ev.gpu,
@@ -300,8 +311,6 @@ async function handleCollect(request, env, origin) {
     ev.codec_hash, ev.voices_hash, ev.domrect_hash, ev.webgl_params_hash,
     ev.rtc_local_ips ? ev.rtc_local_ips.join(',') : null,
     ev.rtc_public_ip, ev.rtc_mdns_protected,
-    ev.dwell_ms, ev.scroll_depth, ev.read_wpm, ev.tab_aways, ev.clicks,
-    ev.final ?? 0,
   ).run();
 
   return new Response(null, { status: 204, headers: corsHeaders(env, origin) });
