@@ -24,25 +24,37 @@ import { webrtcProbe } from './webrtc';
 import { recall, sessionId, browserHint } from './persist';
 
 /**
- * Where beacons go. Both halves are injected at BUILD time from the
- * environment (see .env.example) — deliberately not written in this file,
- * because this repository is public. `PUBLIC_` is Astro/Vite's opt-in for
- * exposing a value to browser code.
+ * Where beacons go. Two modes, chosen at BUILD time from the environment:
  *
- * The path is still obscurity, not cryptographic secrecy: it necessarily
- * ends up inside the shipped JS bundle, so anyone who reads dist/ can find
- * it. It only has to defeat scanners, fuzzers and casual repo readers.
+ * 1. First-party proxy (preferred): PUBLIC_COLLECT_PROXY = "/_collect".
+ *    Beacons POST to a path on the site's own origin. A tiny proxy worker on
+ *    that path forwards to the collector. Blockers rarely kill first-party
+ *    site paths, and the collector's secret COLLECT_PATH never ships in the
+ *    bundle at all — the strongest configuration.
+ *
+ * 2. Direct: PUBLIC_ANALYTICS_ORIGIN + PUBLIC_ANALYTICS_COLLECT_PATH.
+ *    Beacons POST straight to the collector worker. The path is baked into
+ *    the bundle, so it is obscurity only — fine behind the proxy, weak alone
+ *    (EasyPrivacy matches workers.dev hostnames structurally).
+ *
+ * `PUBLIC_` is Astro/Vite's opt-in for exposing a value to browser code.
  * Real access control lives on the read side (STATS_PATH + STATS_TOKEN).
  */
+const PROXY_PATH = import.meta.env.PUBLIC_COLLECT_PROXY ?? '';
 const COLLECT_ORIGIN = import.meta.env.PUBLIC_ANALYTICS_ORIGIN ?? '';
 const COLLECT_PATH = import.meta.env.PUBLIC_ANALYTICS_COLLECT_PATH ?? '';
-const COLLECT_ENDPOINT = COLLECT_ORIGIN && COLLECT_PATH ? `${COLLECT_ORIGIN}${COLLECT_PATH}` : '';
+const COLLECT_ENDPOINT = PROXY_PATH
+  ? PROXY_PATH
+  : COLLECT_ORIGIN && COLLECT_PATH
+    ? `${COLLECT_ORIGIN}${COLLECT_PATH}`
+    : '';
 
 if (!COLLECT_ENDPOINT) {
   // Loud on purpose: a silently dead tracker is worse than a noisy build.
   console.warn(
-    '[hacklog] analytics disabled — set PUBLIC_ANALYTICS_ORIGIN and ' +
-      'PUBLIC_ANALYTICS_COLLECT_PATH at build time (see .env.example).',
+    '[hacklog] analytics disabled — set PUBLIC_COLLECT_PROXY (first-party ' +
+      'proxy) or PUBLIC_ANALYTICS_ORIGIN + PUBLIC_ANALYTICS_COLLECT_PATH ' +
+      '(direct) at build time.',
   );
 }
 

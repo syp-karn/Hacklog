@@ -1,0 +1,35 @@
+name = "hacklog-proxy-staging"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+# ---------------------------------------------------------------------------
+# First-party beacon proxy (staging variant).
+#
+# Serves POST /_collect on the site's own domain and forwards to the staging
+# collector. Blockers rarely block first-party site paths, so this survives
+# EasyPrivacy-style rules that match workers.dev beacons.
+#
+# The secret COLLECT_PATH lives HERE, in this worker's env — NOT in the site's
+# JS bundle. The tracker beacons to /_collect with no path secret at all.
+# Install it with:
+#   npx wrangler secret put COLLECT_PATH
+# (value = the staging collector's COLLECT_PATH secret, byte-identical).
+# ---------------------------------------------------------------------------
+
+[vars]
+# Staging collector worker (no trailing slash).
+UPSTREAM = "https://hacklog-collect-staging.poorvaj-tech.workers.dev"
+
+# Path served on the site's domain. Must match the route pattern below.
+PROXY_PATH = "/_collect"
+
+# Origins allowed to beacon. Comma-separated. Empty = accept any.
+ALLOWED_ORIGINS = "https://hacklog-12w.pages.dev,https://hacklog.pages.dev,https://dev.hacklog.pages.dev,http://localhost:4321,http://localhost:4322"
+
+# Route on the site's zone. Uncomment + adapt once poorvaj.tech (or the Pages
+# project's domain) is a Cloudflare zone and this worker may claim the route.
+# Without a route in config, add it in the dashboard:
+#   Workers & Pages → hacklog-proxy-staging → Settings → Domains & Routes
+# routes = [
+#   { pattern = "poorvaj.tech/_collect*", zone_name = "poorvaj.tech" }
+# ]

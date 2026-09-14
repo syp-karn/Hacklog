@@ -1,6 +1,12 @@
-name = "hacklog-analytics"
+name = "hacklog-collect"
 main = "src/index.js"
 compatibility_date = "2026-01-01"
+
+# ---------------------------------------------------------------------------
+# A neutral name on purpose: "analytics" in a hostname is the first thing
+# crude content-blocker keyword rules match. This shaves off those rules, but
+# structural filter-list rules (EasyPrivacy) still match workers.dev beacons —
+# the real fix for blockers is the first-party proxy (proxy-worker/).
 
 # ---------------------------------------------------------------------------
 # THIS TOP-LEVEL BLOCK *IS* PRODUCTION.
@@ -31,7 +37,7 @@ database_id = "REPLACE_WITH_PRODUCTION_D1_DATABASE_ID"
 # staging collect path is therefore worthless against production.
 # ---------------------------------------------------------------------------
 [env.staging]
-name = "hacklog-analytics-staging"
+name = "hacklog-collect-staging"
 
 [env.staging.vars]
 # Every origin the test deployment is reachable at: the stable Pages URL, the
