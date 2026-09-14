@@ -2,8 +2,13 @@
  * Hacklog analytics collector — Cloudflare Worker + D1.
  *
  * Receives two beacons per pageview from the site tracker:
- *   POST /<32-hex collect hash>   pageview + engagement events (text/plain, no preflight)
- *   GET  /api/stats               aggregate queries for the site owner (token-gated)
+ *   POST <COLLECT_PATH>   pageview + engagement events (text/plain, no preflight)
+ *   GET  <STATS_PATH>     aggregate queries for the site owner (token-gated)
+ *
+ * BOTH paths are secrets supplied by the environment, never literals in this
+ * file. This repo is public: anything written here is readable by anyone who
+ * looks at the source. If a path secret is unset the route simply does not
+ * exist and every request to it 404s — fail closed, never fail open.
  *
  * Design rules:
  *   - Geo/ASN/colo/TLS are stamped SERVER-SIDE from request.cf — the client
@@ -14,29 +19,57 @@
  *   - Every client-supplied field is validated and length-capped. The beacon
  *     body is attacker-controlled input like any other.
  *   - Bot-scored traffic is stored but flagged, so you can filter it in SQL.
+ *
+ * Environments: the default (production) deploy and `--env staging` are fully
+ * separate — different worker name, different D1 database, different secrets.
+ * A leaked staging collect path therefore costs you nothing on production.
  */
 
-const ALLOWED_ORIGIN = 'https://poorvaj.tech';
 const MAX_BODY_BYTES = 8 * 1024;
 
-/**
- * Unguessable collect path. Only the exact hash matches — generic scanners
- * probing /api/collect or /collect get a uniform 404 with no distinguishing
- * response. Rotate by setting the COLLECT_PATH secret (must match the
- * tracker bundle) or editing this constant and redeploying both sides.
- */
-const DEFAULT_COLLECT_PATH = '/a62534db8dff824a71f1190a7be06663';
 const DAY_MS = 86_400_000;
+
+/** Header the owner's stats client must send. Never a query param. */
+const STATS_TOKEN_HEADER = 'x-stats-token';
 
 // ---------------------------------------------------------------- utilities --
 
-function corsHeaders(origin) {
-  return {
-    'access-control-allow-origin': origin === ALLOWED_ORIGIN ? ALLOWED_ORIGIN : ALLOWED_ORIGIN,
+/**
+ * Origin allow-list, comma-separated, from the ALLOWED_ORIGINS var:
+ *   ALLOWED_ORIGINS = "https://poorvaj.tech,https://dev.hacklog.pages.dev"
+ *
+ * A plain `[vars]` entry, not a secret — hostnames are public by nature (DNS
+ * is enumerable and every certificate ever issued is published in Certificate
+ * Transparency logs). Unset or empty ⇒ every origin is accepted.
+ *
+ * This is a speed bump against cross-site noise, NOT access control: any
+ * non-browser client sets `Origin` to whatever it likes. COLLECT_PATH is what
+ * actually gates the endpoint.
+ */
+function allowedOrigins(env) {
+  return String(env.ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((s) => s.trim().replace(/\/$/, ''))
+    .filter(Boolean);
+}
+
+function isAllowedOrigin(env, origin) {
+  const list = allowedOrigins(env);
+  if (list.length === 0) return true;          // no allow-list configured
+  if (!origin) return true;                    // non-browser client, no Origin
+  return list.includes(origin.replace(/\/$/, ''));
+}
+
+function corsHeaders(env, origin) {
+  const headers = {
     'access-control-allow-methods': 'POST, OPTIONS',
     'access-control-allow-headers': 'content-type',
     'access-control-max-age': '86400',
+    vary: 'Origin',
   };
+  // Echo only a vetted origin; never reflect an arbitrary one back.
+  if (origin && isAllowedOrigin(env, origin)) headers['access-control-allow-origin'] = origin;
+  return headers;
 }
 
 function json(data, status = 200) {
@@ -46,8 +79,19 @@ function json(data, status = 200) {
   });
 }
 
-function reject(status, origin) {
-  return new Response(null, { status, headers: corsHeaders(origin) });
+function reject(env, status, origin) {
+  return new Response(null, { status, headers: corsHeaders(env, origin) });
+}
+
+/**
+ * Constant-time string compare. A plain `!==` short-circuits on the first
+ * mismatching byte, which leaks the token prefix to anyone timing responses.
+ */
+function safeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
 }
 
 async function sha256Hex(input) {
@@ -56,9 +100,13 @@ async function sha256Hex(input) {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-/** Rotating daily salt: same visitor within a day → same ip_hash. */
+/**
+ * Rotating daily salt: same visitor within a day → same ip_hash.
+ * With no salt configured we store NULL rather than hashing under a guessable
+ * constant — a predictable "anonymised" IP is worse than not storing it.
+ */
 async function ipHash(ip, salt, nowMs) {
-  if (!ip) return null;
+  if (!ip || !salt) return null;
   const day = Math.floor(nowMs / DAY_MS);
   return sha256Hex(`${salt}:${day}:${ip}`);
 }
@@ -152,42 +200,45 @@ export default {
     const url = new URL(request.url);
 
     if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: corsHeaders(origin) });
+      return new Response(null, { status: 204, headers: corsHeaders(env, origin) });
     }
 
-    if (url.pathname === collectPath(env) && request.method === 'POST') {
+    // Secret paths, injected at deploy time via `wrangler secret put`.
+    // Unset ⇒ no route ⇒ indistinguishable 404 (see the fallback below).
+    const { COLLECT_PATH, STATS_PATH } = env;
+
+    if (COLLECT_PATH && url.pathname === COLLECT_PATH && request.method === 'POST') {
       return handleCollect(request, env, origin);
     }
 
-    if (url.pathname === '/api/stats' && request.method === 'GET') {
+    if (STATS_PATH && url.pathname === STATS_PATH && request.method === 'GET') {
       return handleStats(request, env, url);
     }
 
+    // Liveness only. Reveals that a worker answers on this hostname (DNS and
+    // certificate transparency already do) and nothing about the secrets.
     if (url.pathname === '/healthz') {
       return json({ ok: true, ts: Date.now() });
     }
 
-    return reject(404, origin);
+    // Every miss — wrong path, wrong method, unset secret — looks identical.
+    return reject(env, 404, origin);
   },
 };
 
 // ---------------------------------------------------------------- collect ----
 
-function collectPath(env) {
-  return env.COLLECT_PATH ?? DEFAULT_COLLECT_PATH;
-}
-
 async function handleCollect(request, env, origin) {
-  if (origin && origin !== ALLOWED_ORIGIN) return reject(403, origin);
+  if (!isAllowedOrigin(env, origin)) return reject(env, 403, origin);
 
   const contentLength = Number(request.headers.get('content-length') ?? '0');
-  if (contentLength > MAX_BODY_BYTES) return reject(413, origin);
+  if (contentLength > MAX_BODY_BYTES) return reject(env, 413, origin);
 
   const raw = await request.text();
-  if (raw.length > MAX_BODY_BYTES) return reject(413, origin);
+  if (raw.length > MAX_BODY_BYTES) return reject(env, 413, origin);
 
   const ev = parseEvent(raw);
-  if (!ev) return reject(400, origin);
+  if (!ev) return reject(env, 400, origin);
 
   const cf = request.cf ?? {};
   const now = Date.now();
@@ -204,7 +255,7 @@ async function handleCollect(request, env, origin) {
 
   const ipHashValue = await ipHash(
     request.headers.get('cf-connecting-ip'),
-    env.COLLECT_SALT ?? 'dev-salt',
+    env.COLLECT_SALT,
     now,
   );
 
@@ -253,7 +304,7 @@ async function handleCollect(request, env, origin) {
     ev.final ?? 0,
   ).run();
 
-  return new Response(null, { status: 204, headers: corsHeaders(origin) });
+  return new Response(null, { status: 204, headers: corsHeaders(env, origin) });
 }
 
 // ------------------------------------------------------------------ stats ----
@@ -308,8 +359,10 @@ const STATS = {
 };
 
 async function handleStats(request, env, url) {
-  const token = url.searchParams.get('token') ?? request.headers.get('x-stats-token');
-  if (!env.STATS_TOKEN || token !== env.STATS_TOKEN) {
+  // Header only: query-string tokens end up in browser history, referrers,
+  // proxy logs and shell history. Constant-time compare on top.
+  const provided = request.headers.get(STATS_TOKEN_HEADER);
+  if (!env.STATS_TOKEN || !safeEqual(provided, env.STATS_TOKEN)) {
     return json({ error: 'unauthorized' }, 401);
   }
 

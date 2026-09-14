@@ -33,6 +33,15 @@ const ogImage = image
 const { light, dark, radius } = CONFIG.theme;
 const { baseFontSize } = CONFIG.typography;
 
+// A preview/staging build must never be indexed: duplicate content competes
+// with the real site, and being crawled is the easiest way for a stranger to
+// trip over a non-production deployment. Set PUBLIC_NOINDEX=1 for previews.
+const noindex = import.meta.env.PUBLIC_NOINDEX === "1";
+const robotsContent = noindex ? "noindex, nofollow" : CONFIG.seo.robots;
+const googlebotContent = noindex
+  ? "noindex, nofollow"
+  : "index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1";
+
 // Determine active path for sidebar highlighting
 const currentPath = Astro.url.pathname;
 ---
@@ -124,11 +133,8 @@ const currentPath = Astro.url.pathname;
     <link rel="canonical" href={canonicalURL} />
 
     <!-- Robots -->
-    <meta name="robots" content={CONFIG.seo.robots} />
-    <meta
-      name="googlebot"
-      content="index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1"
-    />
+    <meta name="robots" content={robotsContent} />
+    <meta name="googlebot" content={googlebotContent} />
 
     <!-- OpenGraph -->
     <meta property="og:type" content="website" />

@@ -83,7 +83,6 @@ export interface BeaconPayload {
   pointer?: string;
   codec_hash?: string;
   voices_hash?: string;
-  math_hash?: string;
   domrect_hash?: string;
   webgl_params_hash?: string;
   // WebRTC leak (can be null when protected/unavailable)

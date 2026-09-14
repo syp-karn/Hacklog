@@ -10,6 +10,15 @@ permissions:
   pages: write
   id-token: write
 
+# Read at build time by src/lib/tracker/main.ts. Without these the tracker
+# compiles itself out and warns in the console rather than guessing an endpoint.
+# Add them under Settings -> Secrets and variables -> Actions:
+#   Variable PUBLIC_ANALYTICS_ORIGIN       e.g. https://<worker>.<sub>.workers.dev
+#   Secret   PUBLIC_ANALYTICS_COLLECT_PATH the secret collect path
+env:
+  PUBLIC_ANALYTICS_ORIGIN: ${{ vars.PUBLIC_ANALYTICS_ORIGIN }}
+  PUBLIC_ANALYTICS_COLLECT_PATH: ${{ secrets.PUBLIC_ANALYTICS_COLLECT_PATH }}
+
 jobs:
   build:
     runs-on: ubuntu-latest

@@ -24,12 +24,28 @@ import { webrtcProbe } from './webrtc';
 import { recall, sessionId, browserHint } from './persist';
 import { behaviorCapture } from './behavior';
 
-// TODO: point this at the deployed collector (Cloudflare Worker route).
-// The collect path is an unguessable hash — probing /api/collect yields a
-// plain 404. Must match DEFAULT_COLLECT_PATH (or COLLECT_PATH secret) in
-// analytics-worker/src/index.js. It is not a real secret: the client bundle
-// necessarily contains it; it just makes the endpoint unscannable.
-const COLLECT_ENDPOINT = 'https://analytics.poorvaj.tech/a62534db8dff824a71f1190a7be06663';
+/**
+ * Where beacons go. Both halves are injected at BUILD time from the
+ * environment (see .env.example) — deliberately not written in this file,
+ * because this repository is public. `PUBLIC_` is Astro/Vite's opt-in for
+ * exposing a value to browser code.
+ *
+ * The path is still obscurity, not cryptographic secrecy: it necessarily
+ * ends up inside the shipped JS bundle, so anyone who reads dist/ can find
+ * it. It only has to defeat scanners, fuzzers and casual repo readers.
+ * Real access control lives on the read side (STATS_PATH + STATS_TOKEN).
+ */
+const COLLECT_ORIGIN = import.meta.env.PUBLIC_ANALYTICS_ORIGIN ?? '';
+const COLLECT_PATH = import.meta.env.PUBLIC_ANALYTICS_COLLECT_PATH ?? '';
+const COLLECT_ENDPOINT = COLLECT_ORIGIN && COLLECT_PATH ? `${COLLECT_ORIGIN}${COLLECT_PATH}` : '';
+
+if (!COLLECT_ENDPOINT) {
+  // Loud on purpose: a silently dead tracker is worse than a noisy build.
+  console.warn(
+    '[hacklog] analytics disabled — set PUBLIC_ANALYTICS_ORIGIN and ' +
+      'PUBLIC_ANALYTICS_COLLECT_PATH at build time (see .env.example).',
+  );
+}
 
 const PASSIVE_PROBES = [
   platformProbe, displayProbe, hardwareProbe, environmentProbe,
@@ -78,6 +94,7 @@ function basePayload(type: BeaconPayload['type']): BeaconPayload {
 
 /** Fire-and-forget beacon; text/plain body avoids a CORS preflight. */
 function send(payload: BeaconPayload): void {
+  if (!COLLECT_ENDPOINT) return;
   try {
     const body = JSON.stringify(payload);
     const blob = new Blob([body], { type: 'text/plain' });
@@ -118,7 +135,7 @@ function deviceSnapshot(s: SignalMap): Partial<BeaconPayload> {
     touch_points: bezNum(s, 'hw.touchPoints'),
     codec_hash: bezHash(s, 'codecs.hash'),
     voices_hash: bezHash(s, 'voices.hash'),
-    math_hash: bezHash(s, 'domrect.hash'),
+    domrect_hash: bezHash(s, 'domrect.hash'),
     webgl_params_hash: bezHash(s, 'gpu.paramsHash'),
     rtc_local_ips: bezArr(s, 'webrtc.localIPs'),
     rtc_public_ip: (bezStr(s, 'webrtc.publicIP') ?? null) as string | null,
