@@ -8,7 +8,6 @@ import MobileNavIsland from "@/components/MobileNavIsland";
 interface Props {
   title?: string;
   description?: string;
-  image?: string;
   canonicalURL?: string;
   /** For article pages: show ToC in right rail */
   hasToc?: boolean;
@@ -17,18 +16,11 @@ interface Props {
 const {
   title,
   description = CONFIG.seo.defaultDescription,
-  image,
   canonicalURL = Astro.url.href,
   hasToc = false,
 } = Astro.props;
 
 const pageTitle = title ?? "Poorvaj's Hacklog";
-
-const ogImage = image
-  ? image.startsWith("http")
-    ? image
-    : `${CONFIG.site.url}${image}`
-  : `${CONFIG.site.url}${CONFIG.seo.ogImage}`;
 
 const { light, dark, radius } = CONFIG.theme;
 
@@ -141,13 +133,11 @@ const currentPath = Astro.url.pathname;
     <meta property="og:description" content={description} />
     <meta property="og:site_name" content={SITE.name} />
     <meta property="og:locale" content={CONFIG.site.locale} />
-    <meta property="og:image" content={ogImage} />
 
     <!-- Twitter / X -->
     <meta name="twitter:card" content={CONFIG.seo.twitterCard} />
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogImage} />
     {CONFIG.site.twitterHandle && (
       <meta name="twitter:site" content={CONFIG.site.twitterHandle} />
     )}

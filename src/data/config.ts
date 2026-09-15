@@ -3,7 +3,7 @@ export const CONFIG = {
   // Site Settings
   // ---------------------------------------------------------------------------
   site: {
-    url: "https://poorvaj.in.eu.org",
+    url: "https://poorvaj.pages.dev",
     locale: "en_US"
   },
 
