@@ -3,7 +3,7 @@ export const CONFIG = {
   // Site Settings
   // ---------------------------------------------------------------------------
   site: {
-    url: "https://poorvaj.tech",  // Update when domain is set
+    url: "https://poorvaj.in.eu.org",
     locale: "en_US"
   },
 

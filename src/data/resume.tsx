@@ -3,7 +3,7 @@ import { Icons } from "@/components/icons";
 export const DATA = {
   name: "B S Poorvaj Pranav",
   initials: "BP",
-  url: "https://poorvaj.tech",
+  url: "https://poorvaj.in.eu.org",
   location: "",
   locationLink: "",
   description:

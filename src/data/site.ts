@@ -11,7 +11,7 @@ export const SITE = {
   name: "B S Poorvaj Pranav",
   handle: "syp-karn",
   initials: "BP",
-  url: "https://poorvaj.tech",
+  url: "https://poorvaj.in.eu.org",
   location: "",
   locationLink: "",
   tagline: "Offensive Security",
