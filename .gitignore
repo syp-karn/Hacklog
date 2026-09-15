@@ -9,7 +9,6 @@ dist/
 # Environment
 .env
 .env.*
-!.env.example
 
 # Editor
 .vscode/
@@ -24,8 +23,21 @@ dist/
 .DS_Store
 Thumbs.db
 
-# Reference repositories (analysis only, not production)
+# Reference
 _reference/
 
 # Pagefind
 pagefind/
+
+# Analytics worker
+analytics-worker/.wrangler/
+analytics-worker/.dev.vars
+analytics-worker/node_modules/
+
+# Agent/editor state (local machine identity, not project content)
+.freebuff/
+
+misc/
+
+analytics-worker/scripts/config.test.mjs
+analytics-worker/scripts/smoke-test.mjs

@@ -1,0 +1,64 @@
+name = "hacklog-analytics"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+# ---------------------------------------------------------------------------
+# THIS TOP-LEVEL BLOCK *IS* PRODUCTION.
+#
+# Do not add an [env.production] block: Wrangler treats a named environment as a
+# separate worker, so a plain `wrangler deploy` would ignore its vars and secrets
+# and you would spend an evening wondering why beacons 403.
+#
+#   production → `npx wrangler deploy`            (this top-level block)
+#   staging    → `npx wrangler deploy --env staging`
+# ---------------------------------------------------------------------------
+
+# Origins allowed to POST beacons, comma-separated. A plain var, not a secret —
+# hostnames are public by nature. Remove it entirely to accept any origin
+# (COLLECT_PATH remains the real gate).
+[vars]
+ALLOWED_ORIGINS = "https://poorvaj.tech,https://www.poorvaj.tech"
+
+# Production D1 — `npx wrangler d1 create hacklog-analytics`
+# Tip: `node scripts/setup.mjs` fills this in for you.
+[[d1_databases]]
+binding = "DB"
+database_name = "hacklog-analytics"
+database_id = "REPLACE_WITH_PRODUCTION_D1_DATABASE_ID"
+
+# ---------------------------------------------------------------------------
+# Staging — its own worker, its own D1 database, its own secrets. A leaked
+# staging collect path is therefore worthless against production.
+# ---------------------------------------------------------------------------
+[env.staging]
+name = "hacklog-analytics-staging"
+
+[env.staging.vars]
+# Every origin the test deployment is reachable at: the stable Pages URL, the
+# per-branch alias, and local `astro preview`. Without these, beacons 403.
+# NOTE: per-commit preview URLs (<hash>.hacklog-12w.pages.dev) are NOT covered —
+# add them here + redeploy the worker if you test on branch previews.
+ALLOWED_ORIGINS = "https://hacklog-12w.pages.dev,https://hacklog.pages.dev,https://dev.hacklog.pages.dev,http://localhost:4321,http://localhost:4322"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "hacklog-analytics-staging"
+database_id = "c87100ed-2b32-479a-a829-ee431dbe3dcd"
+
+# ---------------------------------------------------------------------------
+# Secrets — `npx wrangler secret put <NAME>` (add `--env staging` for staging).
+#
+# None of these are committed and none have a fallback in the source: a missing
+# secret makes its route 404 rather than leaving something guessable behind.
+# Generate and install a complete set for both environments with:
+#
+#   node scripts/setup.mjs              # both environments
+#   node scripts/setup.mjs --staging-only
+#
+#   COLLECT_PATH  — secret write path. Must equal PUBLIC_ANALYTICS_COLLECT_PATH
+#                   in the site's build env, and must differ per environment.
+#   STATS_PATH    — secret read path for GET queries.
+#   STATS_TOKEN   — sent as the `x-stats-token` header.
+#   COLLECT_SALT  — salt for the daily visitor IP hash. If unset, ip_hash is
+#                   stored as NULL (a predictable hash would be worse).
+# ---------------------------------------------------------------------------
