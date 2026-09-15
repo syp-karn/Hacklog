@@ -38,7 +38,7 @@ name = "hacklog-analytics-staging"
 # per-branch alias, and local `astro preview`. Without these, beacons 403.
 # NOTE: per-commit preview URLs (<hash>.hacklog-12w.pages.dev) are NOT covered —
 # add them here + redeploy the worker if you test on branch previews.
-ALLOWED_ORIGINS = "https://hacklog-12w.pages.dev,https://hacklog.pages.dev,https://dev.hacklog.pages.dev,http://localhost:4321,http://localhost:4322"
+ALLOWED_ORIGINS = "https://hacklog-12w.pages.dev,https://hacklog.pages.dev,https://dev.hacklog.pages.dev,https://poorvaj.pages.dev,http://localhost:4321,http://localhost:4322"
 
 [[env.staging.d1_databases]]
 binding = "DB"
