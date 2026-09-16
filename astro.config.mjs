@@ -6,6 +6,7 @@ import sitemap from '@astrojs/sitemap';
 import remarkGfm from 'remark-gfm';
 import rehypePrettyCode from 'rehype-pretty-code';
 import { remarkCodeMeta } from './src/lib/remark-code-meta.ts';
+import { robotsTxtIntegration } from './src/lib/seo-integration.ts';
 import { CONFIG } from './src/data/config.ts';
 
 /** @type {import('rehype-pretty-code').Options} */
@@ -36,6 +37,13 @@ export default defineConfig({
       rehypePlugins: [[rehypePrettyCode, prettyCodeOptions]],
       syntaxHighlight: false,
     }),
-    sitemap(),
+    sitemap({
+      // Keep utility and thin-listing pages out of search indexes:
+      // /search is a noindex client-side tool; /tags/* are filtered views of
+      // writeups+notes with no unique content of their own.
+      filter: (page) =>
+        !page.includes("/search") && !page.includes("/tags/"),
+    }),
+    robotsTxtIntegration(),
   ],
 });

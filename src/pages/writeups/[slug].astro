@@ -37,6 +37,12 @@ if (platform) metaParts.push(platform.toUpperCase());
 if (machineName) metaParts.push(machineName);
 if (difficulty) metaParts.push(difficulty.toUpperCase());
 const metaInfo = metaParts.join(" · ");
+
+// With the image() schema helper, `post.data.image` is an ImageMetadata object
+// ({ src, width, height }) whose src is the published /_astro/... path.
+const ogImagePath = post.data.image?.src;
+const ogImageWidth = post.data.image?.width;
+const ogImageHeight = post.data.image?.height;
 ---
 
 <ArticleLayout
@@ -51,6 +57,9 @@ const metaInfo = metaParts.join(" · ");
   previousPost={previousPost}
   nextPost={nextPost}
   basePath="/writeups"
+  image={ogImagePath}
+  imageWidth={ogImageWidth}
+  imageHeight={ogImageHeight}
 >
   <Content components={mdxComponents} />
 </ArticleLayout>

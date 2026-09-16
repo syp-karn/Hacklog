@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import TableOfContents from "@/components/TableOfContents.astro";
-import { formatDate } from "@/lib/utils";
+import { CONFIG } from "@/data/config";
 
 interface Heading {
   depth: number;
@@ -26,6 +26,11 @@ interface Props {
   previousPost?: PostNav | null;
   nextPost?: PostNav | null;
   basePath: string; // e.g. "/writeups" or "/research"
+  /** Site-rooted path to a representative image from the post frontmatter */
+  image?: string;
+  /** Intrinsic dimensions of the OG image (for og:image:width/height) */
+  imageWidth?: number;
+  imageHeight?: number;
 }
 
 const {
@@ -40,10 +45,39 @@ const {
   previousPost,
   nextPost,
   basePath,
+  image,
+  imageWidth,
+  imageHeight,
 } = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, CONFIG.site.url).href;
 ---
 
-<Layout title={title} description={summary} hasToc={headings.length > 0}>
+<Layout
+  title={title}
+  description={summary}
+  image={image}
+  imageWidth={imageWidth}
+  imageHeight={imageHeight}
+  canonicalURL={canonicalURL}
+  hasToc={headings.length > 0}
+>
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": title,
+      "description": summary,
+      "datePublished": date,
+      "url": canonicalURL,
+      "keywords": tags.join(", "),
+      "author": { "@id": `${CONFIG.site.url}/#person` },
+      "publisher": { "@id": `${CONFIG.site.url}/#person` },
+      "image": image ? new URL(image, CONFIG.site.url).href : undefined,
+    })}
+  />
   <div class="flex flex-1 min-w-0 w-full justify-center">
     <!-- Main article container -->
     <div class="w-full max-w-3xl 2xl:max-w-4xl px-6 py-10 lg:py-14">

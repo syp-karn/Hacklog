@@ -7,7 +7,10 @@ import { glob } from "astro/loaders";
 // ---------------------------------------------------------------------------
 const writeups = defineCollection({
   loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/writeups" }),
-  schema: z.object({
+  // Function schema so the `image` helper is available: frontmatter image paths
+  // are then resolved relative to the .mdx file into ImageMetadata objects.
+  schema: ({ image }) =>
+    z.object({
     title: z.string(),
     date: z.string(),
     summary: z.string(),
@@ -15,7 +18,7 @@ const writeups = defineCollection({
     machineName: z.string().optional(),
     difficulty: z.enum(["easy", "medium", "hard", "insane"]).optional(),
     tags: z.array(z.string()).default([]),
-    image: z.string().optional(),
+    image: image().optional(),
     draft: z.boolean().default(false),
     featured: z.boolean().default(false),
   }),

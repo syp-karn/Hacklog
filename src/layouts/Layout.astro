@@ -10,20 +10,36 @@ interface Props {
   description?: string;
   /** Absolute URL or site-rooted path; falls back to the site-wide OG image */
   image?: string;
+  /** Intrinsic dimensions of the custom OG image, when known */
+  imageWidth?: number;
+  imageHeight?: number;
   canonicalURL?: string;
   /** For article pages: show ToC in right rail */
   hasToc?: boolean;
+  /** Utility pages (search, 404) that should stay out of search indexes */
+  noindex?: boolean;
 }
 
 const {
   title,
   description = CONFIG.seo.defaultDescription,
   image,
+  imageWidth,
+  imageHeight,
   canonicalURL = Astro.url.href,
   hasToc = false,
+  noindex: forceNoindex = false,
 } = Astro.props;
 
-const pageTitle = title ?? "Poorvaj's Hacklog";
+// Site-wide default title, or "%s | %n" with the page title when one is given
+// (template comes from CONFIG.seo.titleTemplate).
+const siteTitle = "Poorvaj's Hacklog";
+const pageTitle = title
+  ? CONFIG.seo.titleTemplate
+      .replace("%s", title)
+      .replace("%n", CONFIG.author.name)
+  : siteTitle;
+
 // LinkedIn (and other scrapers) require an absolute, publicly reachable og:image
 // at least 1200x627 — see https://www.linkedin.com/help/linkedin/answer/a521928
 const ogImage = image
@@ -32,12 +48,19 @@ const ogImage = image
     : `${CONFIG.site.url}${image}`
   : `${CONFIG.site.url}${CONFIG.seo.ogImage}`;
 
+// og:image.png is 1200x630; custom images carry their intrinsic dimensions
+// through from the content collection.
+const resolvedImageWidth = imageWidth ?? (image ? undefined : 1200);
+const resolvedImageHeight = imageHeight ?? (image ? undefined : 630);
+
 const { light, dark, radius } = CONFIG.theme;
 
 // A preview/staging build must never be indexed: duplicate content competes
 // with the real site, and being crawled is the easiest way for a stranger to
 // trip over a non-production deployment. Set PUBLIC_NOINDEX=1 for previews.
-const noindex = import.meta.env.PUBLIC_NOINDEX === "1";
+// Individual pages can also opt out via the noindex prop.
+const noindex =
+  forceNoindex || import.meta.env.PUBLIC_NOINDEX === "1";
 const robotsContent = noindex ? "noindex, nofollow" : CONFIG.seo.robots;
 const googlebotContent = noindex
   ? "noindex, nofollow"
@@ -123,24 +146,25 @@ const currentPath = Astro.url.pathname;
     `}
     ></style>
 
-
     <!-- Primary meta -->
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalURL} />
 
-    <!-- Robots -->    <meta name="robots" content={robotsContent} />
+    <!-- Robots -->
+    <meta name="robots" content={robotsContent} />
     <meta name="googlebot" content={googlebotContent} />
 
-    <!-- OpenGraph -->    <meta property="og:type" content="website" />
+    <!-- OpenGraph -->
+    <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:site_name" content={SITE.name} />
     <meta property="og:locale" content={CONFIG.site.locale} />
     <meta property="og:image" content={ogImage} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    {resolvedImageWidth && <meta property="og:image:width" content={String(resolvedImageWidth)} />}
+    {resolvedImageHeight && <meta property="og:image:height" content={String(resolvedImageHeight)} />}
     <meta property="og:image:alt" content={pageTitle} />
 
     <!-- Twitter / X -->
@@ -148,11 +172,10 @@ const currentPath = Astro.url.pathname;
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
-    {CONFIG.site.twitterHandle && (
-      <meta name="twitter:site" content={CONFIG.site.twitterHandle} />
-    )}
 
-    <!-- Structured data (Person + Website) — helps LinkedIn & search engines understand the entity -->
+    <!-- Structured data (Person + WebSite) — helps search engines connect the
+         site to the author across both properties. All fields come from the
+         site's own data files; nothing is invented. -->
     <script is:inline type="application/ld+json" set:html={JSON.stringify({
       "@context": "https://schema.org",
       "@graph": [
@@ -162,16 +185,16 @@ const currentPath = Astro.url.pathname;
           "name": SITE.name,
           "url": CONFIG.site.url,
           "image": ogImage,
-          "jobTitle": "Cybersecurity Practitioner",
-          "description": CONFIG.seo.defaultDescription,
+          "jobTitle": CONFIG.author.tagline,
+          "description": SITE.description,
           "sameAs": [SITE.linkedin, SITE.github].filter(Boolean),
         },
         {
           "@type": "WebSite",
           "@id": `${CONFIG.site.url}/#website`,
           "url": CONFIG.site.url,
-          "name": pageTitle,
-          "description": description,
+          "name": siteTitle,
+          "description": CONFIG.seo.defaultDescription,
           "publisher": { "@id": `${CONFIG.site.url}/#person` },
         },
       ],
