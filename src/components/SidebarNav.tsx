@@ -42,8 +42,11 @@ const NAV_GROUPS: NavItemConfig[] = [
             label: "Hack The Box",
             children: [
               {
+                // Machines are ordered newest-first by pwn date (see misc/add-machine-writeup.md).
                 label: "Machines",
                 children: [
+                  { label: "Connected", href: "/writeups/connected" },
+                  { label: "Paperwork", href: "/writeups/paperwork" },
                   { label: "Enigma", href: "/writeups/enigma" },
                   { label: "Cohort", href: "/writeups/cohort" },
                   { label: "Reactor", href: "/writeups/reactor" },
