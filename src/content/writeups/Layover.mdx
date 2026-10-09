@@ -1,0 +1,47 @@
+---
+title: "Layover"
+date: "2026-09-28"
+summary: "Walkthrough for Layover on Hack The Box, release after machine retirement"
+platform: "htb"
+machineName: "Layover"
+difficulty: "medium"
+tags: ["linux", "ssh", "rdp"]
+draft: false
+featured: false
+---
+
+![image%201](./img/Layover/Layover.png)
+
+# Enumeration
+
+## Nmap Scan
+
+After initial ports can using
+
+`nmap -p- -n -Pn 10.129.6.206 --min-rate=10000`
+
+we get ports 22 and 3389 to open
+
+Performing a service detection scan on them:-
+
+```bash
+nmap -p 22,3389 -Pn -sVC 10.129.6.206 --min-rate=2000
+Starting Nmap 7.95 ( https://nmap.org ) at 2026-09-28 10:30 IST
+Nmap scan report for 10.129.6.206
+Host is up (0.28s latency).
+
+PORT     STATE SERVICE       VERSION
+22/tcp   open  ssh           OpenSSH 9.6p1 Ubuntu 3ubuntu13.19 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   256 0c:4b:d2:76:ab:10:06:92:05:dc:f7:55:94:7f:18:df (ECDSA)
+|_  256 2d:6d:4a:4c:ee:2e:11:b6:c8:90:e6:83:e9:df:38:b0 (ED25519)
+3389/tcp open  ms-wbt-server Microsoft Terminal Service
+Service Info: OSs: Linux, Windows; CPE: cpe:/o:linux:linux_kernel, cpe:/o:microsoft:windows
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 28.16 seconds
+```
+
+An SSH and a Microsoft Terminal Service running.
+
+*This box is still active on HackTheBox. Once retired, this writeup will be published for public access as per HackTheBox's policy on publishing content from their platform*
