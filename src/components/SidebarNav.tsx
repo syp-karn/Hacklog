@@ -42,16 +42,27 @@ const NAV_GROUPS: NavItemConfig[] = [
             label: "Hack The Box",
             children: [
               {
-                // Machines are ordered newest-first by pwn date (see misc/add-machine-writeup.md).
+                // Machines are grouped by HTB season (newest season first); within
+                // each season items are newest-first by pwn date.
                 label: "Machines",
                 children: [
-                  { label: "Touch", href: "/writeups/touch" },
-                  { label: "Layover", href: "/writeups/layover" },
-                  { label: "Connected", href: "/writeups/connected" },
-                  { label: "Paperwork", href: "/writeups/paperwork" },
-                  { label: "Enigma", href: "/writeups/enigma" },
-                  { label: "Cohort", href: "/writeups/cohort" },
-                  { label: "Reactor", href: "/writeups/reactor" },
+                  {
+                    label: "Season 12",
+                    children: [
+                      { label: "Touch", href: "/writeups/touch" },
+                      { label: "Layover", href: "/writeups/layover" },
+                    ],
+                  },
+                  {
+                    label: "Season 11",
+                    children: [
+                      { label: "Connected", href: "/writeups/connected" },
+                      { label: "Paperwork", href: "/writeups/paperwork" },
+                      { label: "Enigma", href: "/writeups/enigma" },
+                      { label: "Cohort", href: "/writeups/cohort" },
+                      { label: "Reactor", href: "/writeups/reactor" },
+                    ],
+                  },
                   { label: "Expressway", href: "/writeups/expressway" },
                   { label: "Editor", href: "/writeups/editor" },
                   { label: "Artificial", href: "/writeups/artificial" },
