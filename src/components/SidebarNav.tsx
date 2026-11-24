@@ -42,17 +42,10 @@ const NAV_GROUPS: NavItemConfig[] = [
             label: "Hack The Box",
             children: [
               {
-                // Machines are grouped by HTB season (newest season first); within
-                // each season items are newest-first by pwn date.
+                // Machines are grouped by HTB season; within each season items
+                // are newest-first by pwn date.
                 label: "Machines",
                 children: [
-                  {
-                    label: "Season 12",
-                    children: [
-                      { label: "Touch", href: "/writeups/touch" },
-                      { label: "Layover", href: "/writeups/layover" },
-                    ],
-                  },
                   {
                     label: "Season 11",
                     children: [
@@ -61,6 +54,13 @@ const NAV_GROUPS: NavItemConfig[] = [
                       { label: "Enigma", href: "/writeups/enigma" },
                       { label: "Cohort", href: "/writeups/cohort" },
                       { label: "Reactor", href: "/writeups/reactor" },
+                    ],
+                  },
+                  {
+                    label: "Season 12",
+                    children: [
+                      { label: "Touch", href: "/writeups/touch" },
+                      { label: "Layover", href: "/writeups/layover" },
                     ],
                   },
                   { label: "Expressway", href: "/writeups/expressway" },
