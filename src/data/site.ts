@@ -26,8 +26,8 @@ export const SITE = {
   // Current focus (shown on homepage)
   currentFocus: [
     "Hunting bugs and vulnerability research",
-    "Familiarizing myself with AD",
-    "Trying automations",
+    "Familiarizing myself with the Cloud and AD",
+    "Experimenting with LLM and agentic harnesses",
   ],
 
   // ---------------------------------------------------------------------------
@@ -59,13 +59,13 @@ export const SITE = {
 
     experience: [
       {
-        title: "Security Engineer Intern",
+        title: "Cybersecurity Intern",
         company: "Sennovate Inc.",
         logo: "/sennovate.png",
-        period: "February 2026 – Present",
+        period: "February 2026 – July 2026",
         description: [
-          "Researched and documented MITRE ATT&CK tactics/techniques; produced a tools-to-techniques reference to support red-team knowledge and future assessments.",
-          "Helping with AI automation of cybersecurity workflows.",
+          "Built LLM-assisted workflows for automating cybersecurity tasks.",
+          "Researched and documented MITRE ATT&CK tactics/techniques; produced a tools-to-techniques reference to support red-team knowledge and future assessments",
         ],
       }
     ],
@@ -92,13 +92,12 @@ export const SITE = {
         "Burp Suite",
         "Nmap",
         "Wireshark",
-        "SQLMap",
         "ffuf",
         "GoBuster",
         "BloodHound",
         "Ghidra",
-        "Metasploit",
-        "Mimikatz"
+        "Semgrep",
+        "CodeQL",
       ],
       "Languages": [
         "Python",
